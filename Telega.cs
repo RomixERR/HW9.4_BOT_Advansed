@@ -53,6 +53,7 @@ namespace HW9._4_BOT_Advansed
                     {
                         case MessageType.Text: //Обработка ТЕКСТОВЫХ сообщений
                             SendMessage(update.Message.Chat.Id, update.Message.Text);
+                            SendPhotoPreviews(update.Message.Chat.Id);
                             break;
                         case MessageType.Photo: //Обработка ФОТОГРАФИЙ
                         case MessageType.Document: //Обработка документов
@@ -103,7 +104,7 @@ namespace HW9._4_BOT_Advansed
                     photoLage = update.Message.Photo[update.Message.Photo.Count() - 1];
                     DownloadFile(photoLage.FileId, $@"{fileResivedPatch}\{FileName}");
                     //SendFile(update.Message.Chat.Id, $@"{fileResivedPatch}\{FileName}");
-                    ReSendFile(update.Message.Chat.Id, photoLage.FileId);
+                    ReSendFile(update.Message.Chat.Id, photoLage.FileId, $"Пользователь сохранил файл.\n{FileName}");
                     break;
                 case MessageType.Document: //Обработка документов
                     FileSize = (int)update.Message.Document.FileSize;
@@ -118,7 +119,7 @@ namespace HW9._4_BOT_Advansed
                     FileSize = (int)update.Message.Voice.FileSize;
                     FileId = update.Message.Voice.FileId;
                     Duration = update.Message.Voice.Duration;
-                    FileName = "Voice_" + update.Message.Date.ToLocalTime().ToString().Replace(':', '.') + ".mp3";
+                    FileName = "Voice_" + dataAndTime + ".ogg";
                     SendMessage(update.Message.Chat.Id, $"Это голосовое! Имя: {FileName}, Текст под ней: {Caption}");
                     Log($"FileName:{FileName}, FileSize:{FileSize}, Duration:{Duration}, FileId:{FileId}");
                     DownloadFile(FileId, $@"{fileResivedPatch}\{FileName}");
@@ -155,7 +156,7 @@ namespace HW9._4_BOT_Advansed
             }
             else
             {
-                Log($"Файл уже имеется: {fileName}  fileSize:{fileSize}  FileId:{FileId}");
+                Log($"ОШИБКА Файл уже имеется: {fileName}  fileSize:{fileSize}  FileId:{FileId}");
             }
         }
 
@@ -198,17 +199,37 @@ namespace HW9._4_BOT_Advansed
             System.IO.FileStream fileStream = new System.IO.FileStream(fileName, System.IO.FileMode.Open);
             InputOnlineFile inputOnlineFile = new InputOnlineFile(fileStream);
             await botClient.SendPhotoAsync(chatId, inputOnlineFile, shortFileName);
+            //await botClient.SendVoiceAsync(chatId, inputOnlineFile, shortFileName);
             fileStream.Close();
         }
 
-        private async void ReSendFile(long chatId, string FileId)
+        private async void ReSendFile(long chatId, string FileId, string msg)
         {
             Thread.Sleep(1000);
             Log($"==> ReSend File FileId: {FileId}\n \t for chatID: {chatId}");
             //InputTelegramFile inputTelegramFile = new InputTelegramFile(FileId);
-            await botClient.SendPhotoAsync(chatId, FileId);
+            //Log($" FileName:{inputTelegramFile.FileName} FileType:{inputTelegramFile.FileType} FileId:{inputTelegramFile.FileId} ToString:{inputTelegramFile}");
+            await botClient.SendPhotoAsync(chatId, FileId, msg);
         }
 
+        private async void SendPhotoPreviews(long chatId)
+        {
+            string filesPath = $@"{fileResivedPatch}\preview\";
+            Log($"==> Send Photo Previews from: {filesPath}\n \t for chatID: {chatId}");
+            //Photo 25.04.2022 21.01.03.jpg
+            //Photo Кокш 25.04.2022 21.21.19.jpg
+            //Photo_25.04.2022 19.59.04.jpg
+            //InputMedia media = new InputMedia();
+            //InputMediaPhoto photo = new InputMediaPhoto();
+            IAlbumInputMedia[] albumInputMedias = new IAlbumInputMedia[]
+                {
+                    new InputMediaPhoto("https://cdn.pixabay.com/photo/2017/06/20/19/22/fuchs-2424369_640.jpg"){ Caption = "ОДЫН"},
+                    new InputMediaPhoto("https://cdn.pixabay.com/photo/2017/04/11/21/34/giraffe-2222908_640.jpg"){ Caption = "ДУА"},
+                    new InputMediaPhoto("https://cdn.pixabay.com/photo/2017/06/20/19/22/fuchs-2424369_640.jpg"){ Caption = "3 3 3 3 3"},
+                    new InputMediaPhoto("https://cdn.pixabay.com/photo/2017/04/11/21/34/giraffe-2222908_640.jpg"){ Caption = "4 4 4 4 4"},
+                };
 
+            await botClient.SendMediaGroupAsync(chatId, albumInputMedias);
+        }
     }
 }
