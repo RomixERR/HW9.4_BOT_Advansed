@@ -100,9 +100,10 @@ namespace HW9._4_BOT_Advansed
                     PhotoSize photoSmall = update.Message.Photo[0];
                     DownloadFile(photoSmall.FileId,$@"{fileResivedPatch}\preview\{FileName}");
                     PhotoSize photoLage;
-                        photoLage = update.Message.Photo[update.Message.Photo.Count() - 1];
-                        DownloadFile(photoLage.FileId, $@"{fileResivedPatch}\{FileName}");
-                        SendFile(update.Message.Chat.Id, $@"{fileResivedPatch}\{FileName}");
+                    photoLage = update.Message.Photo[update.Message.Photo.Count() - 1];
+                    DownloadFile(photoLage.FileId, $@"{fileResivedPatch}\{FileName}");
+                    //SendFile(update.Message.Chat.Id, $@"{fileResivedPatch}\{FileName}");
+                    ReSendFile(update.Message.Chat.Id, photoLage.FileId);
                     break;
                 case MessageType.Document: //Обработка документов
                     FileSize = (int)update.Message.Document.FileSize;
@@ -200,6 +201,13 @@ namespace HW9._4_BOT_Advansed
             fileStream.Close();
         }
 
+        private async void ReSendFile(long chatId, string FileId)
+        {
+            Thread.Sleep(1000);
+            Log($"==> ReSend File FileId: {FileId}\n \t for chatID: {chatId}");
+            //InputTelegramFile inputTelegramFile = new InputTelegramFile(FileId);
+            await botClient.SendPhotoAsync(chatId, FileId);
+        }
 
 
     }
