@@ -10,6 +10,7 @@ using Telegram.Bot.Exceptions;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.InputFiles;
 using Telegram.Bot.Types.Enums;
+using Telegram.Bot.Types.ReplyMarkups;
 using static HW9._4_BOT_Advansed.Loger;
 
 namespace HW9._4_BOT_Advansed
@@ -41,27 +42,61 @@ namespace HW9._4_BOT_Advansed
         /// </summary>
         private async void RunLoopUpdates()
         {
+            
+            Message message;
             while (true)
             {
                 //Log("=====get updates===");
                 Update[] updates = await botClient.GetUpdatesAsync(offset: updateOffset, limit: 10, timeout: 3);
                 foreach (var update in updates)
                 {
-                    updateOffset = update.Id+1;
-                    Log($"+++ Input update. ChatID:{update.Message.Chat.Id} UserID:{update.Message.From.Id}, FirstName:{update.Message.From.FirstName} updateOffset:{updateOffset} Type:{update.Message.Type.ToString()} Text:{update.Message.Text}"); //Обработка апдейтов
-                    switch (update.Message.Type)
+                    //Обработка апдейтов
+                    Log($"+++ Input update");
+                    updateOffset = update.Id + 1; //подтверждение приёма последнего апдейта (в любом случае по циклу пройдут все апдейты, последний ID+1 потом передаётся со следующим запросом.)
+                    //Фильтр АПДЕЙТОВ
+                    if (update.CallbackQuery != null)               //Обработка нажатий на кнопки Inline (превращает нажатия на кнопки inline в текстовое сообщение)
+                    {
+                        message = update.CallbackQuery.Message;
+                        message.Text = update.CallbackQuery.Data;
+                        Log($"CallbackQuery Chat.Id:{message.Chat.Id} MessageText:{message.Text}");
+                        SendMessage(message.Chat.Id, $"Вы выбрали опцию {message.Text}");
+                    } else if (update.Message != null)              //Обычные сообщения (текст или документ) или нажата клавиатурная кнопка (по сути то-же сообщение)
+                    {
+                        message = update.Message;
+                        Log($"Message Chat.Id:{message.Chat.Id} MessageText:{message.Text}");
+                    } else if (update.MyChatMember != null)         //Что-то с чат мембером (например вышел из чата, забанился)
+                    {
+                        long ChatId = update.MyChatMember.Chat.Id;
+                        long UserId = update.MyChatMember.From.Id;
+                        string FirstName = update.MyChatMember.From.FirstName;
+                        ChatMemberStatus chatMemberStatus = update.MyChatMember.NewChatMember.Status;
+                        string Status = chatMemberStatus.ToString();
+                        //сделать обработку изменяющихся статусов!!!
+                        Log($"MyChatMember FirstName:{FirstName} Chat.Id:{ChatId} UserId:{UserId} NewStatus:{Status}");
+                        continue;
+                    } else //Не понятное действие
+                    {
+                        Log($"ERROR Update Filter else branch, unknow UPDATE TYPE");
+                        continue;
+                    }
+                    //ОБРАБОТКА ОБЫЧНЫХ АПДЕЙТОВ
+                     
+
+                    Log($"Message Type:{message.Type.ToString()}  Text:{message.Text}. ChatID:{message.Chat.Id} UserID:{message.From.Id}, FirstName:{message.From.FirstName} updateOffset:{updateOffset} ");
+
+                    switch (message.Type)
                     {
                         case MessageType.Text: //Обработка ТЕКСТОВЫХ сообщений
-                            SendMessage(update.Message.Chat.Id, update.Message.Text);
-                            SendPhotoPreviews(update.Message.Chat.Id);
+                            Commands(message);
                             break;
-                        case MessageType.Photo: //Обработка ФОТОГРАФИЙ
-                        case MessageType.Document: //Обработка документов
-                        case MessageType.Voice: //Обработка документов
-                            ResiveFiles(update);
+                        case MessageType.Photo: //Обработка входящих ФОТОГРАФИЙ
+                        case MessageType.Document: //Обработка входящих документов
+                        case MessageType.Voice: //Обработка входящих документов
+                            ResiveFiles(message);
                             break;
                         default:
-                            SendMessage(update.Message.Chat.Id, "Не понял юмара!");
+                            Log($"ERROR default branch in switch (message.Type) Message Type:{message.Type.ToString()}");
+                            SendMessage(message.Chat.Id, "Не понял юмара!");
                             break;
                     }
                 }
@@ -69,22 +104,63 @@ namespace HW9._4_BOT_Advansed
             }
         }
 
+        private void Commands(Message message)
+        {
+            switch (message.Text.ToUpper())
+            {
+                case "/START":
+                        Log($"start");
+                        SendMessageMainMenuButtons(message.Chat.Id, "старт");
+                    break;
+                default:
+                    if (message.Text.ToUpper().Equals(OptionsMainButton[forOptionsButton.help]))
+                    {
+                        Log($"help");
+                        SendMessage(message.Chat.Id, "Помощь");
+                    }
+                    else if (message.Text.ToUpper().Equals(OptionsMainButton[forOptionsButton.spisok]))
+                    {
+                        Log($"spisok");
+                        SendMessage(message.Chat.Id, "список");
+                    }
+                    else if (message.Text.ToUpper().Equals(OptionsMainButton[forOptionsButton.pogoda]))
+                    {
+
+                    }
+                    else if (message.Text.ToUpper().Equals(OptionsMainButton[forOptionsButton.region_nomer]))
+                    {
+
+                    }
+                    else if (message.Text.ToUpper().Equals(OptionsMainButton[forOptionsButton.razvlecheniya]))
+                    {
+
+                    }
+                    else
+                    { 
+
+                    }
+                break;
+            }
+
+            
+        }
+
 
         /// <summary>
         /// Получаем данные о файлах из сообщения Update
         /// </summary>
         /// <param name="update">Полученный и обрабатываемый апдейт</param>
-        private void ResiveFiles(Update update)
+        private void ResiveFiles(Message message)
         {
             int FileSize, Duration;
             string FileId;
             string FileName;
             string Caption;
             string dataAndTime;
-            Caption = update.Message.Caption;
-            dataAndTime = update.Message.Date.ToLocalTime().ToString().Replace(':', '.');
+            Caption = message.Caption;
+            dataAndTime = message.Date.ToLocalTime().ToString().Replace(':', '.');
 
-            switch (update.Message.Type)
+            switch (message.Type)
             {
                 case MessageType.Photo: //Обработка ФОТОГРАФИЙ
                     string tempName;
@@ -97,35 +173,35 @@ namespace HW9._4_BOT_Advansed
                         tempName = Caption + " " + dataAndTime;
                     }
                     FileName = "Photo "+ tempName + ".jpg";
-                    SendMessage(update.Message.Chat.Id, $"Это фотография! Имя: {FileName}, Текст под ней: {Caption}");
-                    PhotoSize photoSmall = update.Message.Photo[0];
+                    SendMessage(message.Chat.Id, $"Это фотография! Имя: {FileName}, Текст под ней: {Caption}");
+                    PhotoSize photoSmall = message.Photo[0];
                     DownloadFile(photoSmall.FileId,$@"{fileResivedPatch}\preview\{FileName}");
                     PhotoSize photoLage;
-                    photoLage = update.Message.Photo[update.Message.Photo.Count() - 1];
+                    photoLage = message.Photo[message.Photo.Count() - 1];
                     DownloadFile(photoLage.FileId, $@"{fileResivedPatch}\{FileName}");
-                    //SendFile(update.Message.Chat.Id, $@"{fileResivedPatch}\{FileName}");
-                    ReSendFile(update.Message.Chat.Id, photoLage.FileId, $"Пользователь сохранил файл.\n{FileName}");
+                    //SendFile(message.Chat.Id, $@"{fileResivedPatch}\{FileName}");
+                    ReSendFile(message.Chat.Id, photoLage.FileId, $"Пользователь сохранил файл.\n{FileName}");
                     break;
                 case MessageType.Document: //Обработка документов
-                    FileSize = (int)update.Message.Document.FileSize;
-                    FileId = update.Message.Document.FileId;
-                    FileName = update.Message.Document.FileName;
-                    SendMessage(update.Message.Chat.Id, $"Это документ! Имя: {FileName}, Текст под ней: {Caption}");
+                    FileSize = (int)message.Document.FileSize;
+                    FileId = message.Document.FileId;
+                    FileName = message.Document.FileName;
+                    SendMessage(message.Chat.Id, $"Это документ! Имя: {FileName}, Текст под ней: {Caption}");
                     Log($"FileName:{FileName}, FileSize:{FileSize}, FileId:{FileId}");
                     DownloadFile(FileId, $@"{fileResivedPatch}\{FileName}");
 
                     break;
                 case MessageType.Voice: //Обработка голосовых
-                    FileSize = (int)update.Message.Voice.FileSize;
-                    FileId = update.Message.Voice.FileId;
-                    Duration = update.Message.Voice.Duration;
+                    FileSize = (int)message.Voice.FileSize;
+                    FileId = message.Voice.FileId;
+                    Duration = message.Voice.Duration;
                     FileName = "Voice_" + dataAndTime + ".ogg";
-                    SendMessage(update.Message.Chat.Id, $"Это голосовое! Имя: {FileName}, Текст под ней: {Caption}");
+                    SendMessage(message.Chat.Id, $"Это голосовое! Имя: {FileName}, Текст под ней: {Caption}");
                     Log($"FileName:{FileName}, FileSize:{FileSize}, Duration:{Duration}, FileId:{FileId}");
                     DownloadFile(FileId, $@"{fileResivedPatch}\{FileName}");
                     break;
                 default:
-                    SendMessage(update.Message.Chat.Id, "Не понял юмара! 2");
+                    SendMessage(message.Chat.Id, "Не понял юмара! 2");
                     break;
             }
 
@@ -173,6 +249,36 @@ namespace HW9._4_BOT_Advansed
                 await botClient.SendTextMessageAsync(chatId, msg);
             }
         }
+
+        private async void SendMessageMainMenuButtons(long chatId, string msg)
+        {
+           KeyboardButton[][] kb = new KeyboardButton[][]
+           {
+                new KeyboardButton[] { OptionsMainButton[forOptionsButton.spisok], OptionsMainButton[forOptionsButton.pogoda] },
+                new KeyboardButton[] { OptionsMainButton[forOptionsButton.help],OptionsMainButton[forOptionsButton.region_nomer],OptionsMainButton[forOptionsButton.razvlecheniya] },
+           };
+
+           ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup(kb) { ResizeKeyboard = true };
+
+           Log($"==> SendMessageMainMenuButtons: {msg}\n \t for chatID: {chatId}");
+           await botClient.SendTextMessageAsync(chatId, msg, replyMarkup: replyKeyboardMarkup);
+        }
+
+        private async void SendMessageInlineKeyboard(long chatId, string msg, InlineKeyboardButton[] inlineKeyboards)
+        {
+            if (!string.IsNullOrEmpty(msg))
+            {
+                //InlineKeyboardButton[] inlineKeyboards = new InlineKeyboardButton[]
+                //    {
+                //        InlineKeyboardButton.WithCallbackData(text: "1.1", callbackData: "11"),
+                //        InlineKeyboardButton.WithCallbackData(text: "1.2", callbackData: "12"),
+                //    };
+                InlineKeyboardMarkup inlineKeyboard = new InlineKeyboardMarkup(inlineKeyboards);
+                Log($"==> SendMessageInlineKeyboard: {msg}\n \t for chatID: {chatId}");
+                await botClient.SendTextMessageAsync(chatId, msg, replyMarkup: inlineKeyboard);
+            }
+        }
+
         /// <summary>
         /// Отправка файла с коротким именем в подписи
         /// </summary>
@@ -214,6 +320,7 @@ namespace HW9._4_BOT_Advansed
 
         private async void SendPhotoPreviews(long chatId)
         {
+            throw new Exception("Не доделал");
             string filesPath = $@"{fileResivedPatch}\preview\";
             Log($"==> Send Photo Previews from: {filesPath}\n \t for chatID: {chatId}");
             //Photo 25.04.2022 21.01.03.jpg
