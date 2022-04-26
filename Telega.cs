@@ -23,7 +23,7 @@ namespace HW9._4_BOT_Advansed
         private static string token;
         int updateOffset=0;
         public static string fileResivedPatch;
-        
+        Dictionary<long, User> MyUsers = new Dictionary<long, User>();    //<ChatID,User> Пользователи
 
         public Telega(string tokenFileLocalPath,string fileResivedPatch_)
         {

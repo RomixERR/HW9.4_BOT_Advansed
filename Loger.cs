@@ -77,6 +77,8 @@ namespace HW9._4_BOT_Advansed
             System.IO.Directory.CreateDirectory(dir);
         }
 
+
+
         public static string FileListAll(string fileResivedPatch, int startOffset, string searchPattern)
         {
             string S="";
@@ -163,5 +165,39 @@ namespace HW9._4_BOT_Advansed
             fileListButtons[Yrows] = tempX;
         }
 
+    }
+
+    public class User
+    {
+        public enum EFileType
+        {
+            jpg,
+            ogg,
+            all
+        }
+        public long UserId;
+        public string FirstName;
+        public int OffsetFileList;
+        public EFileType FileType = EFileType.all;
+        public string GetFilePattern()
+        {
+            string s;
+            switch (FileType)
+            {
+                case EFileType.jpg:
+                    s = "*.jpg";
+                    break;
+                case EFileType.ogg:
+                    s = "*.ogg";
+                    break;
+                case EFileType.all:
+                    s = "*.*";
+                    break;
+                default:
+                    s = "*.*";
+                    break;
+            }
+            return s;
+        }
     }
 }
