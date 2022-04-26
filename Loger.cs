@@ -10,7 +10,8 @@ namespace HW9._4_BOT_Advansed
 {
     internal class Loger
     {
-        public static InlineKeyboardButton[][] fileListButtons; //Кнопки которые появляются в прямо в тексте, выбор какой именно список показать пользователю
+        public static InlineKeyboardButton[][] fileChooseButtons; //Кнопки которые появляются в прямо в тексте, выбор какой именно список показать пользователю
+        public static InlineKeyboardButton[][] fileListButtons; //Кнопки которые появляются в прямо в тексте, выбор какой именно файл показать пользователю
         public static KeyboardButton[][] keyboardMainMenuButtons; //Кнопки главного меню снизу
         private static string filePatch;
         public Loger(string filePatch_)
@@ -47,7 +48,7 @@ namespace HW9._4_BOT_Advansed
         private void CreateInlineButtons()
         {
 
-            fileListButtons = new InlineKeyboardButton[][]
+            fileChooseButtons = new InlineKeyboardButton[][]
             {
                 new InlineKeyboardButton[]
                 {
@@ -75,5 +76,84 @@ namespace HW9._4_BOT_Advansed
             string dir = System.IO.Path.GetDirectoryName(fileName);
             System.IO.Directory.CreateDirectory(dir);
         }
+
+        public static string FileListAll(string fileResivedPatch, int startOffset, string searchPattern)
+        {
+            string S="";
+            int endItem;
+            int maxCount=10;
+
+            if (!Directory.Exists(fileResivedPatch))
+            {
+                Log($"Директория {fileResivedPatch} не обнаружена");
+                return S;
+            }
+
+            DirectoryInfo directoryInfo = new DirectoryInfo(fileResivedPatch);
+            IEnumerable<FileInfo> fileInfo = directoryInfo.EnumerateFiles(searchPattern);
+
+            if (fileInfo.Count() == 0)
+            {
+                Log($"Директория {fileResivedPatch} пустая");
+                return S;
+            }
+
+            FileInfo[] fi = fileInfo.ToArray();
+
+            endItem = fileInfo.Count();
+            if (endItem > (maxCount+ startOffset-1))
+            {
+                endItem = (maxCount+ startOffset-1);
+            }
+            if (endItem >= fileInfo.Count()) { endItem = fileInfo.Count() - 1; };
+
+                for (int i = startOffset; i <= endItem; i++)
+                {
+                    S += $"#{i+1}: {fi[i]} \n";
+                }
+            CreateInlineButtonsForFileList(maxCount, startOffset);
+            return S;
+
+        }
+
+        private static void CreateInlineButtonsForFileList(int amount,int offset)
+        {
+            int Ywhole = amount / 6; //Сколько целых строк
+            int Xpart = amount % 6;  //Сколько остаётся на дополнительную не целую строку
+            int Yrows;
+            int count=1;
+            InlineKeyboardButton[] tempX;
+            tempX = new InlineKeyboardButton[6];
+            if (Xpart == 0) { Yrows = Ywhole; } else { Yrows = Ywhole + 1; } //Всего строк
+            fileListButtons = new InlineKeyboardButton[Yrows+1][]; //новый массив массивов (строки целые и не полные) +1 - для доп. кнопки
+            for (int i = 0; i < Ywhole; i++) //проходим целые строки если есть
+            {
+                tempX = new InlineKeyboardButton[6];
+                for (int j = 0; j < 6; j++) //заполняем строку по X
+                {
+                    tempX[j] = InlineKeyboardButton.WithCallbackData(text: $"{count+ offset}", callbackData: $"/NF:{count + offset}");
+                    count++;
+                }
+                fileListButtons[i] = tempX;
+                //Array.Copy(tempX, fileListButtons[i], tempX.Length);
+            }
+            if (Xpart > 0) //Если осталась не полная строка
+            {
+                tempX = new InlineKeyboardButton[Xpart];
+                for (int j = 0; j < Xpart; j++) //заполняем строку по X
+                {
+                    tempX[j] = InlineKeyboardButton.WithCallbackData(text: $"{count + offset}", callbackData: $"/NF:{count + offset}");
+                    count++;
+                }
+                fileListButtons[Yrows-1] = tempX;
+                //Array.Copy(tempX, fileListButtons[Yrows - 1], tempX.Length);
+            }
+            //доп кнопка
+            tempX = new InlineKeyboardButton[2];
+            tempX[0] = InlineKeyboardButton.WithCallbackData(text: $"<< ПРЕДЫДУЩИЕ", callbackData: $"/NF:PR");
+            tempX[1] = InlineKeyboardButton.WithCallbackData(text: $"СЛЕДУЮЩИЕ >>", callbackData: $"/NF:NX");
+            fileListButtons[Yrows] = tempX;
+        }
+
     }
 }

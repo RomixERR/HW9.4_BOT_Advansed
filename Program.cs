@@ -12,6 +12,8 @@ namespace HW9._4_BOT_Advansed
         static void Main(string[] args)
         {
             Loger loger = new Loger(@"LogFiles\Logs.txt");
+            //Console.WriteLine(Loger.FileListAll("ResivedFiles",0,"*"));
+            //Console.ReadKey();
             Telega telegram = new Telega(@"E:\C#\SKILLBOXC#\HW9\tokenTestBot.txt", @"ResivedFiles");
 
         }

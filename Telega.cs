@@ -20,14 +20,14 @@ namespace HW9._4_BOT_Advansed
         //https://telegrambots.github.io/book/1/quickstart.html
         //https://github.com/TelegramBots/Telegram.Bot
         TelegramBotClient botClient;
-        string token;
+        private static string token;
         int updateOffset=0;
-        string fileResivedPatch;
+        public static string fileResivedPatch;
         
 
-        public Telega(string tokenFileLocalPath,string fileResivedPatch)
+        public Telega(string tokenFileLocalPath,string fileResivedPatch_)
         {
-            this.fileResivedPatch = fileResivedPatch;
+            fileResivedPatch = fileResivedPatch_;
             token = System.IO.File.ReadAllText(tokenFileLocalPath);
             botClient = new TelegramBotClient(token);
             Log($"START BOT AT {DateTime.Now}");
@@ -109,6 +109,7 @@ namespace HW9._4_BOT_Advansed
         /// <param name="message">входящее сообщение текущего апдейта со всей инф-й</param>
         private void Commands(Message message) 
         {
+            string s;
             switch (message.Text.ToUpper())
             {
                 case "/START":
@@ -117,7 +118,7 @@ namespace HW9._4_BOT_Advansed
                     break;
                 case "/СПИСОК ФАЙЛОВ":
                     Log($"СПИСОК");
-                    SendMessageInlineKeyboard(message.Chat.Id, "Выберете тип файлов для просмотра списка или загрузки эскизов!", fileListButtons);
+                    SendMessageInlineKeyboard(message.Chat.Id, "Выберете тип файлов для просмотра списка или загрузки эскизов!", fileChooseButtons);
                     break;
                 case "/ПОГОДА":
                     Log($"ПОГОДА");
@@ -137,7 +138,8 @@ namespace HW9._4_BOT_Advansed
                     break;
                 case "/КАРТИНКИСПИСОК":
                     Log($"КАРТИНКИ СПИСОК");
-                    SendMessage(message.Chat.Id, "КАРТИНКИ СПИСОК");
+                    s = FileListAll("ResivedFiles", 0, "*.jpg");
+                    SendMessageInlineKeyboard(message.Chat.Id, $"Список картинок:\n{s}\nВыберете картинку!", fileListButtons);
                     break;
                 case "/КАРТИНКИ":
                     Log($"КАРТИНКИ");
@@ -153,7 +155,8 @@ namespace HW9._4_BOT_Advansed
                     break;
                 case "/ВСЕ":
                     Log($"ВСЕ");
-                    SendMessage(message.Chat.Id, "ВСЕ");
+                    s = FileListAll("ResivedFiles", 0, "*.*");
+                    SendMessageInlineKeyboard(message.Chat.Id, $"Список файлов:\n{s}\nВыберете файл!", fileListButtons);
                     break;
                 default:
                 break;
