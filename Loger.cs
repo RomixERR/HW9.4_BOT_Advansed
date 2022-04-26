@@ -4,11 +4,28 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO;
+using Telegram.Bot.Types.ReplyMarkups;
 
 namespace HW9._4_BOT_Advansed
 {
     internal class Loger
     {
+        public static InlineKeyboardButton[][] fileListButtons; //Кнопки которые появляются в прямо в тексте, выбор какой именно список показать пользователю
+        public static KeyboardButton[][] keyboardMainMenuButtons; //Кнопки главного меню снизу
+        private static string filePatch;
+        public Loger(string filePatch_)
+        {
+            filePatch = filePatch_;
+            FillOptionsMainButton();
+            CreateKeyboardButtons();
+            CreateInlineButtons();
+        }
+        public static void Log(string msg)
+        {
+            Console.WriteLine(msg);
+            CreateSupportingDirectory(filePatch);
+            File.AppendAllText(filePatch, msg + "\n");
+        }
         public enum forOptionsButton
         {
             spisok,
@@ -27,27 +44,36 @@ namespace HW9._4_BOT_Advansed
             OptionsMainButton.Add(forOptionsButton.region_nomer, "/НОМЕР РЕГИОН");
             OptionsMainButton.Add(forOptionsButton.razvlecheniya, "/РАЗВЛЕЧЕНИЯ");
         }
-
-        private static string filePatch;
-        public Loger(string filePatch_)
+        private void CreateInlineButtons()
         {
-            filePatch = filePatch_;
-            FillOptionsMainButton();
-        }
-        public static void Log(string msg)
-        {
-            Console.WriteLine(msg);
-            CreateSupportingDirectory(filePatch);
-            File.AppendAllText(filePatch, msg + "\n");
-        }
 
+            fileListButtons = new InlineKeyboardButton[][]
+            {
+                new InlineKeyboardButton[]
+                {
+                    InlineKeyboardButton.WithCallbackData(text: "КАРТИНКИ СПИСОК", callbackData: "/КАРТИНКИСПИСОК"),
+                    InlineKeyboardButton.WithCallbackData(text: "КАРТИНКИ МИНИАТЮРЫ", callbackData: "/КАРТИНКИ"),
+                },
+                new InlineKeyboardButton[]
+                {
+                    InlineKeyboardButton.WithCallbackData(text: "ГОЛОСОВЫЕ", callbackData: "/ГОЛОСОВЫЕ"),
+                    InlineKeyboardButton.WithCallbackData(text: "ДОКУМЕНТЫ", callbackData: "/ДОКУМЕНТЫ"),
+                    InlineKeyboardButton.WithCallbackData(text: "ВСЕ СПИСОК", callbackData: "/ВСЕ"),
+                }
+            };
+        }
+        private void CreateKeyboardButtons()
+        {
+            keyboardMainMenuButtons = new KeyboardButton[][]
+           {
+                        new KeyboardButton[] { "/СПИСОК ФАЙЛОВ", "/ПОГОДА" },
+                        new KeyboardButton[] { "/HELP", "/НОМЕР РЕГИОН", "/РАЗВЛЕЧЕНИЯ" },
+           };
+        }
         public static void CreateSupportingDirectory(string fileName)
         {
             string dir = System.IO.Path.GetDirectoryName(fileName);
             System.IO.Directory.CreateDirectory(dir);
         }
-
-       
-        
     }
 }

@@ -59,7 +59,7 @@ namespace HW9._4_BOT_Advansed
                         message = update.CallbackQuery.Message;
                         message.Text = update.CallbackQuery.Data;
                         Log($"CallbackQuery Chat.Id:{message.Chat.Id} MessageText:{message.Text}");
-                        SendMessage(message.Chat.Id, $"Вы выбрали опцию {message.Text}");
+                        //SendMessage(message.Chat.Id, $"Вы выбрали опцию {message.Text}");
                     } else if (update.Message != null)              //Обычные сообщения (текст или документ) или нажата клавиатурная кнопка (по сути то-же сообщение)
                     {
                         message = update.Message;
@@ -103,42 +103,59 @@ namespace HW9._4_BOT_Advansed
                 Thread.Sleep(2000);
             }
         }
-
-        private void Commands(Message message)
+        /// <summary>
+        /// Обработка команд от пользователя
+        /// </summary>
+        /// <param name="message">входящее сообщение текущего апдейта со всей инф-й</param>
+        private void Commands(Message message) 
         {
             switch (message.Text.ToUpper())
             {
                 case "/START":
                         Log($"start");
-                        SendMessageMainMenuButtons(message.Chat.Id, "старт");
+                        SendMessageMainMenuButtons(message.Chat.Id, "старт", keyboardMainMenuButtons);
+                    break;
+                case "/СПИСОК ФАЙЛОВ":
+                    Log($"СПИСОК");
+                    SendMessageInlineKeyboard(message.Chat.Id, "Выберете тип файлов для просмотра списка или загрузки эскизов!", fileListButtons);
+                    break;
+                case "/ПОГОДА":
+                    Log($"ПОГОДА");
+                    SendMessage(message.Chat.Id, "погода");
+                    break;
+                case "/HELP":
+                    Log($"HELP");
+                    SendMessage(message.Chat.Id, "HELP");
+                    break;
+                case "/НОМЕР РЕГИОН":
+                    Log($"НОМЕР РЕГИОН");
+                    SendMessage(message.Chat.Id, "НОМЕР РЕГИОН");
+                    break;
+                case "/РАЗВЛЕЧЕНИЯ":
+                    Log($"РАЗВЛЕЧЕНИЯ");
+                    SendMessage(message.Chat.Id, "РАЗВЛЕЧЕНИЯ");
+                    break;
+                case "/КАРТИНКИСПИСОК":
+                    Log($"КАРТИНКИ СПИСОК");
+                    SendMessage(message.Chat.Id, "КАРТИНКИ СПИСОК");
+                    break;
+                case "/КАРТИНКИ":
+                    Log($"КАРТИНКИ");
+                    SendMessage(message.Chat.Id, "КАРТИНКИ");
+                    break;
+                case "/ГОЛОСОВЫЕ":
+                    Log($"ГОЛОСОВЫЕ");
+                    SendMessage(message.Chat.Id, "ГОЛОСОВЫЕ");
+                    break;
+                case "/ДОКУМЕНТЫ":
+                    Log($"ДОКУМЕНТЫ");
+                    SendMessage(message.Chat.Id, "ДОКУМЕНТЫ");
+                    break;
+                case "/ВСЕ":
+                    Log($"ВСЕ");
+                    SendMessage(message.Chat.Id, "ВСЕ");
                     break;
                 default:
-                    if (message.Text.ToUpper().Equals(OptionsMainButton[forOptionsButton.help]))
-                    {
-                        Log($"help");
-                        SendMessage(message.Chat.Id, "Помощь");
-                    }
-                    else if (message.Text.ToUpper().Equals(OptionsMainButton[forOptionsButton.spisok]))
-                    {
-                        Log($"spisok");
-                        SendMessage(message.Chat.Id, "список");
-                    }
-                    else if (message.Text.ToUpper().Equals(OptionsMainButton[forOptionsButton.pogoda]))
-                    {
-
-                    }
-                    else if (message.Text.ToUpper().Equals(OptionsMainButton[forOptionsButton.region_nomer]))
-                    {
-
-                    }
-                    else if (message.Text.ToUpper().Equals(OptionsMainButton[forOptionsButton.razvlecheniya]))
-                    {
-
-                    }
-                    else
-                    { 
-
-                    }
                 break;
             }
 
@@ -179,8 +196,8 @@ namespace HW9._4_BOT_Advansed
                     PhotoSize photoLage;
                     photoLage = message.Photo[message.Photo.Count() - 1];
                     DownloadFile(photoLage.FileId, $@"{fileResivedPatch}\{FileName}");
-                    //SendFile(message.Chat.Id, $@"{fileResivedPatch}\{FileName}");
-                    ReSendFile(message.Chat.Id, photoLage.FileId, $"Пользователь сохранил файл.\n{FileName}");
+                    //SendFile(message.Chat.Id, $@"{fileResivedPatch}\{FileName}");  //СДЕЛАТЬ ДЛЯ ВСЕХ ПОЛЬЗОВАТЕЛЕЙ РАССЫЛКУ
+                    ReSendFilePhoto(message.Chat.Id, photoLage.FileId, $"Пользователь сохранил файл.\n{FileName}");
                     break;
                 case MessageType.Document: //Обработка документов
                     FileSize = (int)message.Document.FileSize;
@@ -250,27 +267,17 @@ namespace HW9._4_BOT_Advansed
             }
         }
 
-        private async void SendMessageMainMenuButtons(long chatId, string msg)
+        private async void SendMessageMainMenuButtons(long chatId, string msg, KeyboardButton[][] kb)
         {
-           KeyboardButton[][] kb = new KeyboardButton[][]
-           {
-                new KeyboardButton[] { OptionsMainButton[forOptionsButton.spisok], OptionsMainButton[forOptionsButton.pogoda] },
-                new KeyboardButton[] { OptionsMainButton[forOptionsButton.help],OptionsMainButton[forOptionsButton.region_nomer],OptionsMainButton[forOptionsButton.razvlecheniya] },
-           };
-
            ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup(kb) { ResizeKeyboard = true };
 
            Log($"==> SendMessageMainMenuButtons: {msg}\n \t for chatID: {chatId}");
            await botClient.SendTextMessageAsync(chatId, msg, replyMarkup: replyKeyboardMarkup);
         }
 
-        private async void SendMessageInlineKeyboard(long chatId, string msg, InlineKeyboardButton[] inlineKeyboards)
+        private async void SendMessageInlineKeyboard(long chatId, string msg, InlineKeyboardButton[][] inlineKeyboards)
         {
-                //InlineKeyboardButton[] inlineKeyboards = new InlineKeyboardButton[]
-                //    {
-                //        InlineKeyboardButton.WithCallbackData(text: "1.1", callbackData: "11"),
-                //        InlineKeyboardButton.WithCallbackData(text: "1.2", callbackData: "12"),
-                //    };
+
                 InlineKeyboardMarkup inlineKeyboard = new InlineKeyboardMarkup(inlineKeyboards);
                 Log($"==> SendMessageInlineKeyboard: {msg}\n \t for chatID: {chatId}");
                 await botClient.SendTextMessageAsync(chatId, msg, replyMarkup: inlineKeyboard);
@@ -281,7 +288,7 @@ namespace HW9._4_BOT_Advansed
         /// </summary>
         /// <param name="chatId">берётся например из полученного ранее update.Message.Chat.Id</param>
         /// <param name="fileName">полное имя файла от каталога запуска в данном случае</param>
-        private async void SendFile(long chatId, string fileName)
+        private async void SendFilePhoto(long chatId, string fileName)
         {
             System.IO.FileInfo fileInfo = new System.IO.FileInfo(fileName);
             string shortFileName = System.IO.Path.GetFileName(fileName);
@@ -306,7 +313,7 @@ namespace HW9._4_BOT_Advansed
             fileStream.Close();
         }
 
-        private async void ReSendFile(long chatId, string FileId, string msg)
+        private async void ReSendFilePhoto(long chatId, string FileId, string msg)
         {
             Thread.Sleep(1000);
             Log($"==> ReSend File FileId: {FileId}\n \t for chatID: {chatId}");
