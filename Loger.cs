@@ -111,12 +111,12 @@ namespace HW9._4_BOT_Advansed
                 {
                     S += $"#{i+1}: {fi[i]} \n";
                 }
-            CreateInlineButtonsForFileList(maxCount, startOffset);
+            CreateInlineButtonsForFileList(endItem- startOffset+1, startOffset, maxCount);
             return S;
 
         }
 
-        private static void CreateInlineButtonsForFileList(int amount,int offset)
+        private static void CreateInlineButtonsForFileList(int amount,int offset, int maxCount)
         {
             int Ywhole = amount / 6; //Сколько целых строк
             int Xpart = amount % 6;  //Сколько остаётся на дополнительную не целую строку
@@ -149,9 +149,17 @@ namespace HW9._4_BOT_Advansed
                 //Array.Copy(tempX, fileListButtons[Yrows - 1], tempX.Length);
             }
             //доп кнопка
+            //int pr = offset - amount;
+            int pr = offset + amount- maxCount;
+            int nx = count + offset - 1;
+            if (pr < 0) pr = 0; //Первый лист
+            if (Ywhole==0) //нет целых строк, нельзя показать следующиеХ
+            {
+                nx = 0;
+            }  
             tempX = new InlineKeyboardButton[2];
-            tempX[0] = InlineKeyboardButton.WithCallbackData(text: $"<< ПРЕДЫДУЩИЕ", callbackData: $"/NF:PR");
-            tempX[1] = InlineKeyboardButton.WithCallbackData(text: $"СЛЕДУЮЩИЕ >>", callbackData: $"/NF:NX");
+            tempX[0] = InlineKeyboardButton.WithCallbackData(text: $"<< ПРЕДЫДУЩИЕ", callbackData: $"/OFFSET:{pr}");
+            tempX[1] = InlineKeyboardButton.WithCallbackData(text: $"СЛЕДУЮЩИЕ >>", callbackData: $"/OFFSET:{nx}");
             fileListButtons[Yrows] = tempX;
         }
 
