@@ -266,8 +266,6 @@ namespace HW9._4_BOT_Advansed
 
         private async void SendMessageInlineKeyboard(long chatId, string msg, InlineKeyboardButton[] inlineKeyboards)
         {
-            if (!string.IsNullOrEmpty(msg))
-            {
                 //InlineKeyboardButton[] inlineKeyboards = new InlineKeyboardButton[]
                 //    {
                 //        InlineKeyboardButton.WithCallbackData(text: "1.1", callbackData: "11"),
@@ -276,7 +274,6 @@ namespace HW9._4_BOT_Advansed
                 InlineKeyboardMarkup inlineKeyboard = new InlineKeyboardMarkup(inlineKeyboards);
                 Log($"==> SendMessageInlineKeyboard: {msg}\n \t for chatID: {chatId}");
                 await botClient.SendTextMessageAsync(chatId, msg, replyMarkup: inlineKeyboard);
-            }
         }
 
         /// <summary>
