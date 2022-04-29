@@ -122,7 +122,7 @@ namespace HW9._4_BOT_Advansed
                 }else if(req.typeOfReq == RequestFromInlineBtn.EtypeOfReq.ShowListFiles) //это запрос списка файлов (кнопки << >>)
                 {
                     s = FileList(fileResivedPatch, req.numberOfFile, req.typeOfFileFilter);
-                    SendMessageInlineKeyboard(message.Chat.Id, $"Список картинок:\n{s}\nВыберете картинку!", fileListButtons);
+                    SendMessageInlineKeyboard(message.Chat.Id, $"Список файлов:\n{s}\nВыберете файл!", fileListButtons);
                 }else if (req.typeOfReq == RequestFromInlineBtn.EtypeOfReq.ShowPreviewsPhotos) //это запрос миниатюр фоток (кнопки << >>)
                 {
                     SendPhotoPreviews(message.Chat.Id, req.numberOfFile, RequestFromInlineBtn.EtypeOfFileFilter.JPG);
@@ -291,7 +291,7 @@ namespace HW9._4_BOT_Advansed
 
         private async void SendMessageInlineKeyboard(long chatId, string msg, InlineKeyboardButton[][] inlineKeyboards)
         {
-
+                Thread.Sleep(1000);
                 InlineKeyboardMarkup inlineKeyboard = new InlineKeyboardMarkup(inlineKeyboards);
                 Log($"==> SendMessageInlineKeyboard: {msg}\n \t for chatID: {chatId}");
                 await botClient.SendTextMessageAsync(chatId, msg, replyMarkup: inlineKeyboard);
