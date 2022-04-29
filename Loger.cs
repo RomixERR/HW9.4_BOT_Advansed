@@ -58,7 +58,6 @@ namespace HW9._4_BOT_Advansed
                 new InlineKeyboardButton[]
                 {
                     InlineKeyboardButton.WithCallbackData(text: "ГОЛОСОВЫЕ", callbackData: "/ГОЛОСОВЫЕ"),
-                    InlineKeyboardButton.WithCallbackData(text: "ДОКУМЕНТЫ", callbackData: "/ДОКУМЕНТЫ"),
                     InlineKeyboardButton.WithCallbackData(text: "ВСЕ СПИСОК", callbackData: "/ВСЕ"),
                 }
             };

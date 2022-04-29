@@ -114,7 +114,9 @@ namespace HW9._4_BOT_Advansed
             {
                 if(req.typeOfReq == RequestFromInlineBtn.EtypeOfReq.SendFile)
                 {
-
+                    string fileNameToSend = GetFullFileName("ResivedFiles", req.numberOfFile-1, req.typeOfFileFilter);
+                    if (string.IsNullOrEmpty( fileNameToSend)) {Log($"ОШИБКА Имя файла не найдено") ; return; };
+                    SendFileToUser(message.Chat.Id, fileNameToSend, req.typeOfFileFilter);
                 }
             }
             switch (message.Text.ToUpper())
@@ -157,14 +159,10 @@ namespace HW9._4_BOT_Advansed
                     s = FileList("ResivedFiles", 0, RequestFromInlineBtn.EtypeOfFileFilter.OGG);
                     SendMessageInlineKeyboard(message.Chat.Id, $"Список файлов:\n{s}\nВыберете голосовое сообщение!", fileListButtons);
                     break;
-                case "/ДОКУМЕНТЫ":
-                    Log($"ДОКУМЕНТЫ");
-                    SendMessage(message.Chat.Id, "ДОКУМЕНТЫ");
-                    break;
                 case "/ВСЕ":
                     Log($"ВСЕ");
                     s = FileList("ResivedFiles", 0, RequestFromInlineBtn.EtypeOfFileFilter.ALL);
-                    SendMessageInlineKeyboard(message.Chat.Id, $"Список файлов:\n{s}\nВыберете файл!", fileListButtons);
+                    SendMessageInlineKeyboard(message.Chat.Id, $"Список файлов:\n{s}\nВыберете файл, файл будет отправлен как документ, в независимости от типа!", fileListButtons);
                     break;
                 default:
                 break;
@@ -299,7 +297,7 @@ namespace HW9._4_BOT_Advansed
         /// </summary>
         /// <param name="chatId">берётся например из полученного ранее update.Message.Chat.Id</param>
         /// <param name="fileName">полное имя файла от каталога запуска в данном случае</param>
-        private async void SendFilePhoto(long chatId, string fileName)
+        private async void SendFileToUser(long chatId, string fileName, RequestFromInlineBtn.EtypeOfFileFilter typeOfFileFilter)
         {
             System.IO.FileInfo fileInfo = new System.IO.FileInfo(fileName);
             string shortFileName = System.IO.Path.GetFileName(fileName);
@@ -319,10 +317,22 @@ namespace HW9._4_BOT_Advansed
             Log($"==> Send File: {fileName}\n \t for chatID: {chatId}");
             System.IO.FileStream fileStream = new System.IO.FileStream(fileName, System.IO.FileMode.Open);
             InputOnlineFile inputOnlineFile = new InputOnlineFile(fileStream);
-            await botClient.SendPhotoAsync(chatId, inputOnlineFile, shortFileName);
-            //await botClient.SendVoiceAsync(chatId, inputOnlineFile, shortFileName);
+
+            switch (typeOfFileFilter)
+            {
+                case RequestFromInlineBtn.EtypeOfFileFilter.JPG:
+                    await botClient.SendPhotoAsync(chatId, inputOnlineFile, shortFileName);
+                    break;
+                case RequestFromInlineBtn.EtypeOfFileFilter.OGG:
+                    await botClient.SendVoiceAsync(chatId, inputOnlineFile, shortFileName);
+                    break;
+                case RequestFromInlineBtn.EtypeOfFileFilter.ALL:
+                    await botClient.SendDocumentAsync(chatId, inputOnlineFile, shortFileName);
+                    break;
+            }
             fileStream.Close();
         }
+
 
         private async void ReSendFilePhoto(long chatId, string FileId, string msg)
         {
