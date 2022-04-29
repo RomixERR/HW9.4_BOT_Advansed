@@ -123,6 +123,10 @@ namespace HW9._4_BOT_Advansed
                 {
                     s = FileList(fileResivedPatch, req.numberOfFile, req.typeOfFileFilter);
                     SendMessageInlineKeyboard(message.Chat.Id, $"Список картинок:\n{s}\nВыберете картинку!", fileListButtons);
+                }else if (req.typeOfReq == RequestFromInlineBtn.EtypeOfReq.ShowPreviewsPhotos) //это запрос миниатюр фоток (кнопки << >>)
+                {
+                    SendPhotoPreviews(message.Chat.Id, req.numberOfFile, RequestFromInlineBtn.EtypeOfFileFilter.JPG);
+                    SendMessageInlineKeyboard(message.Chat.Id, $"[WIP] Выберете картинку! [WIP]", fileListButtons);
                 }
             }
             switch (message.Text.ToUpper())

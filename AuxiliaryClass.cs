@@ -145,7 +145,7 @@ namespace HW9._4_BOT_Advansed
                 {
                     S += $"✅{i+1}: {fi[i]} \n";
                 }
-            CreateInlineButtonsForFileList(endItem- startOffset+1, startOffset, maxCount, searchFileType);
+            CreateInlineButtonsForFileList(endItem- startOffset+1, startOffset, maxCount, searchFileType, RequestFromInlineBtn.EtypeOfReq.ShowListFiles);
             return S;
         }
 
@@ -188,7 +188,7 @@ namespace HW9._4_BOT_Advansed
                 S[count] = fi[i].FullName;
                 count++;
             }
-            CreateInlineButtonsForFileList(endItem - startOffset + 1, startOffset, maxCount, searchFileType);
+            CreateInlineButtonsForFileList(endItem - startOffset + 1, startOffset, maxCount, searchFileType, RequestFromInlineBtn.EtypeOfReq.ShowPreviewsPhotos);
             return S;
         }
 
@@ -221,7 +221,7 @@ namespace HW9._4_BOT_Advansed
         }
 
 
-        private static void CreateInlineButtonsForFileList(int amount,int offset, int maxCount, RequestFromInlineBtn.EtypeOfFileFilter searchFileType)
+        private static void CreateInlineButtonsForFileList(int amount,int offset, int maxCount, RequestFromInlineBtn.EtypeOfFileFilter searchFileType, RequestFromInlineBtn.EtypeOfReq typeOfReq)
         {
             int Ywhole = amount / 6; //Сколько целых строк
             int Xpart = amount % 6;  //Сколько остаётся на дополнительную не целую строку
@@ -262,10 +262,19 @@ namespace HW9._4_BOT_Advansed
             if (Ywhole==0) //нет целых строк, нельзя показать следующиеХ
             {
                 nx = 0;
-            }  
+            }
+            string P;
+            if (typeOfReq == RequestFromInlineBtn.EtypeOfReq.ShowListFiles)
+            {
+                P = "SL";
+            }
+            else
+            {
+                P = "SP";
+            }
             tempX = new InlineKeyboardButton[2];
-            tempX[0] = InlineKeyboardButton.WithCallbackData(text: $"<< ПРЕДЫДУЩИЕ", callbackData: $"{PatternRequest}:SL:{pr}:{searchFileType.ToString()}");
-            tempX[1] = InlineKeyboardButton.WithCallbackData(text: $"СЛЕДУЮЩИЕ >>", callbackData: $"{PatternRequest}:SL:{nx}:{searchFileType.ToString()}");
+            tempX[0] = InlineKeyboardButton.WithCallbackData(text: $"<< ПРЕДЫДУЩИЕ", callbackData: $"{PatternRequest}:{P}:{pr}:{searchFileType.ToString()}");
+            tempX[1] = InlineKeyboardButton.WithCallbackData(text: $"СЛЕДУЮЩИЕ >>", callbackData: $"{PatternRequest}:{P}:{nx}:{searchFileType.ToString()}");
             fileListButtons[Yrows] = tempX;
         }
 
@@ -283,6 +292,7 @@ namespace HW9._4_BOT_Advansed
                 {
                     case "SF": req.typeOfReq = RequestFromInlineBtn.EtypeOfReq.SendFile; break;
                     case "SL": req.typeOfReq = RequestFromInlineBtn.EtypeOfReq.ShowListFiles; break;
+                    case "SP": req.typeOfReq = RequestFromInlineBtn.EtypeOfReq.ShowPreviewsPhotos; break;
                     default: { Log($"ExtractRequestFromInlineBtn - s[1] паттерн не ликвидный: {s[1]}"); return false; };
                 }
                 req.numberOfFile = int.Parse(s[2]);
@@ -305,7 +315,8 @@ namespace HW9._4_BOT_Advansed
         public enum EtypeOfReq
         {
             SendFile,
-            ShowListFiles
+            ShowListFiles,
+            ShowPreviewsPhotos
         }
         public enum EtypeOfFileFilter
         {
