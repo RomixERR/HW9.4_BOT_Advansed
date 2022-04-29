@@ -110,6 +110,13 @@ namespace HW9._4_BOT_Advansed
         private void Commands(Message message) 
         {
             string s;
+            if  (ExtractRequestFromInlineBtn(message.Text,out RequestFromInlineBtn req)) //пробуем обработать запрос типа /REQB:SF:10:JPG
+            {
+                if(req.typeOfReq == RequestFromInlineBtn.EtypeOfReq.SendFile)
+                {
+
+                }
+            }
             switch (message.Text.ToUpper())
             {
                 case "/START":

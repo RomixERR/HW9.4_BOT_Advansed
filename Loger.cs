@@ -116,8 +116,34 @@ namespace HW9._4_BOT_Advansed
                 }
             CreateInlineButtonsForFileList(endItem- startOffset+1, startOffset, maxCount, searchFileType);
             return S;
-
         }
+
+        public static string GetFullFileName(string fileResivedPatch, int numOfFileInList, RequestFromInlineBtn.EtypeOfFileFilter searchFileType)
+        {
+            string searchPat = RequestFromInlineBtn.GetFilePattern(searchFileType);
+            string S = "";
+
+            if (!Directory.Exists(fileResivedPatch))
+            {
+                Log($"ОШИБКА GetFullFileName Директория {fileResivedPatch} не обнаружена");
+                return S;
+            }
+
+            DirectoryInfo directoryInfo = new DirectoryInfo(fileResivedPatch);
+            IEnumerable<FileInfo> fileInfo = directoryInfo.EnumerateFiles(searchPat);
+
+            if (fileInfo.Count() == 0)
+            {
+                Log($"ОШИБКА GetFullFileName Директория {fileResivedPatch} пустая");
+                return S;
+            }
+
+            FileInfo[] fi = fileInfo.ToArray();
+            if (fi.Length <= numOfFileInList) {Log($"ОШИБКА GetFullFileName numOfFileInList слишком большое значение:{numOfFileInList}"); return S; };
+            S = fi[numOfFileInList].FullName;
+            return S;
+        }
+
 
         private static void CreateInlineButtonsForFileList(int amount,int offset, int maxCount, RequestFromInlineBtn.EtypeOfFileFilter searchFileType)
         {
@@ -135,7 +161,7 @@ namespace HW9._4_BOT_Advansed
                 tempX = new InlineKeyboardButton[6];
                 for (int j = 0; j < 6; j++) //заполняем строку по X
                 {
-                    tempX[j] = InlineKeyboardButton.WithCallbackData(text: $"{count+ offset}", callbackData: $"{PatternRequest}:SF:{count + offset}:{RequestFromInlineBtn.GetFilePattern(searchFileType)}");
+                    tempX[j] = InlineKeyboardButton.WithCallbackData(text: $"{count+ offset}", callbackData: $"{PatternRequest}:SF:{count + offset}:{searchFileType.ToString()}");
                     count++;
                 }
                 fileListButtons[i] = tempX;
@@ -146,7 +172,7 @@ namespace HW9._4_BOT_Advansed
                 tempX = new InlineKeyboardButton[Xpart];
                 for (int j = 0; j < Xpart; j++) //заполняем строку по X
                 {
-                    tempX[j] = InlineKeyboardButton.WithCallbackData(text: $"{count + offset}", callbackData: $"{PatternRequest}:SF:{count + offset}:{RequestFromInlineBtn.GetFilePattern(searchFileType)}");
+                    tempX[j] = InlineKeyboardButton.WithCallbackData(text: $"{count + offset}", callbackData: $"{PatternRequest}:SF:{count + offset}:{searchFileType.ToString()}");
                     count++;
                 }
                 fileListButtons[Yrows-1] = tempX;
@@ -162,8 +188,8 @@ namespace HW9._4_BOT_Advansed
                 nx = 0;
             }  
             tempX = new InlineKeyboardButton[2];
-            tempX[0] = InlineKeyboardButton.WithCallbackData(text: $"<< ПРЕДЫДУЩИЕ", callbackData: $"{PatternRequest}:SL:{pr}:{RequestFromInlineBtn.GetFilePattern(searchFileType)}");
-            tempX[1] = InlineKeyboardButton.WithCallbackData(text: $"СЛЕДУЮЩИЕ >>", callbackData: $"{PatternRequest}:SL:{nx}:{RequestFromInlineBtn.GetFilePattern(searchFileType)}");
+            tempX[0] = InlineKeyboardButton.WithCallbackData(text: $"<< ПРЕДЫДУЩИЕ", callbackData: $"{PatternRequest}:SL:{pr}:{searchFileType.ToString()}");
+            tempX[1] = InlineKeyboardButton.WithCallbackData(text: $"СЛЕДУЮЩИЕ >>", callbackData: $"{PatternRequest}:SL:{nx}:{searchFileType.ToString()}");
             fileListButtons[Yrows] = tempX;
         }
 
@@ -176,18 +202,19 @@ namespace HW9._4_BOT_Advansed
             try
             {
                 s = text.Split(':');
-                if (!s[0].Equals(RequestFromInlineBtn.patternRequest)) return false;
+                if (!s[0].Equals(RequestFromInlineBtn.patternRequest)) {Log($"ExtractRequestFromInlineBtn - s[0] паттерн не ликвидный: {s[0]}"); return false; }; //s[0] не ликвидный
                 switch (s[1])
                 {
                     case "SF": req.typeOfReq = RequestFromInlineBtn.EtypeOfReq.SendFile; break;
                     case "SL": req.typeOfReq = RequestFromInlineBtn.EtypeOfReq.ShowListFiles; break;
-                    default: return false;
+                    default: { Log($"ExtractRequestFromInlineBtn - s[1] паттерн не ликвидный: {s[1]}"); return false; };
                 }
                 req.numberOfFile = int.Parse(s[2]);
                 req.typeOfFileFilter = (RequestFromInlineBtn.EtypeOfFileFilter)Enum.Parse(typeof(RequestFromInlineBtn.EtypeOfFileFilter), s[3]);
             }
             catch (Exception e)
             {
+                Log($"ExtractRequestFromInlineBtn - Exception.message: {e.Message}");
                 return false;
             }
             return true;
