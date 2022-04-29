@@ -11,7 +11,8 @@ using Telegram.Bot.Types;
 using Telegram.Bot.Types.InputFiles;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
-using static HW9._4_BOT_Advansed.Loger;
+using static HW9._4_BOT_Advansed.AuxiliaryClass;
+
 
 namespace HW9._4_BOT_Advansed
 {
@@ -19,11 +20,11 @@ namespace HW9._4_BOT_Advansed
     {
         //https://telegrambots.github.io/book/1/quickstart.html
         //https://github.com/TelegramBots/Telegram.Bot
-        TelegramBotClient botClient;
+        private TelegramBotClient botClient;
         private static string token;
-        int updateOffset=0;
+        private int updateOffset =0;
         public static string fileResivedPatch;
-        Dictionary<long, User> MyUsers = new Dictionary<long, User>();    //<ChatID,User> Пользователи
+        private Dictionary<long, User> MyUsers = new Dictionary<long, User>();    //<ChatID,User> Пользователи
 
         public Telega(string tokenFileLocalPath,string fileResivedPatch_)
         {
@@ -115,12 +116,12 @@ namespace HW9._4_BOT_Advansed
                 if(req.typeOfReq == RequestFromInlineBtn.EtypeOfReq.SendFile) //это запрос файла
                 {
                     SendMessage(message.Chat.Id, "Пожалуйста подождите, я обрабатываю ваш запрос!");
-                    string fileNameToSend = GetFullFileName("ResivedFiles", req.numberOfFile-1, req.typeOfFileFilter);
+                    string fileNameToSend = GetFullFileName(fileResivedPatch, req.numberOfFile-1, req.typeOfFileFilter);
                     if (string.IsNullOrEmpty( fileNameToSend)) {Log($"ОШИБКА Имя файла не найдено") ; return; };
                     SendFileToUser(message.Chat.Id, fileNameToSend, req.typeOfFileFilter);
                 }else if(req.typeOfReq == RequestFromInlineBtn.EtypeOfReq.ShowListFiles) //это запрос списка файлов (кнопки << >>)
                 {
-                    s = FileList("ResivedFiles", req.numberOfFile, req.typeOfFileFilter);
+                    s = FileList(fileResivedPatch, req.numberOfFile, req.typeOfFileFilter);
                     SendMessageInlineKeyboard(message.Chat.Id, $"Список картинок:\n{s}\nВыберете картинку!", fileListButtons);
                 }
             }
@@ -149,19 +150,19 @@ namespace HW9._4_BOT_Advansed
                     SendMessage(message.Chat.Id, "РАЗВЛЕЧЕНИЯ");
                     break;
                 case "/КАРТИНКИСПИСОК":
-                    s = FileList("ResivedFiles", 0,RequestFromInlineBtn.EtypeOfFileFilter.JPG);
+                    s = FileList(fileResivedPatch, 0,RequestFromInlineBtn.EtypeOfFileFilter.JPG);
                     SendMessageInlineKeyboard(message.Chat.Id, $"Список картинок:\n{s}\nВыберете картинку!", fileListButtons);
                     break;
                 case "/КАРТИНКИ":
-                    Log($"КАРТИНКИ");
-                    SendMessage(message.Chat.Id, "КАРТИНКИ");
+                    SendPhotoPreviews(message.Chat.Id, 0,RequestFromInlineBtn.EtypeOfFileFilter.JPG);
+                    SendMessageInlineKeyboard(message.Chat.Id, $"[WIP] Выберете картинку! [WIP]", fileListButtons);
                     break;
                 case "/ГОЛОСОВЫЕ":
-                    s = FileList("ResivedFiles", 0, RequestFromInlineBtn.EtypeOfFileFilter.OGG);
+                    s = FileList(fileResivedPatch, 0, RequestFromInlineBtn.EtypeOfFileFilter.OGG);
                     SendMessageInlineKeyboard(message.Chat.Id, $"Список файлов:\n{s}\nВыберете голосовое сообщение!", fileListButtons);
                     break;
                 case "/ВСЕ":
-                    s = FileList("ResivedFiles", 0, RequestFromInlineBtn.EtypeOfFileFilter.ALL);
+                    s = FileList(fileResivedPatch, 0, RequestFromInlineBtn.EtypeOfFileFilter.ALL);
                     SendMessageInlineKeyboard(message.Chat.Id, $"Список файлов:\n{s}\nВыберете файл, файл будет отправлен как документ, в независимости от типа!", fileListButtons);
                     break;
                 default:
@@ -344,18 +345,32 @@ namespace HW9._4_BOT_Advansed
             await botClient.SendPhotoAsync(chatId, FileId, msg);
         }
 
-        private async void SendPhotoPreviews(long chatId)
+        private async void SendPhotoPreviews(long chatId, int stratOffset, RequestFromInlineBtn.EtypeOfFileFilter typeOfFileFilter)
         {
-            throw new Exception("Не доделал");
+            
             string filesPath = $@"{fileResivedPatch}\preview\";
+            string[] filesList;
             Log($"==> Send Photo Previews from: {filesPath}\n \t for chatID: {chatId}");
             //Photo 25.04.2022 21.01.03.jpg
             //Photo Кокш 25.04.2022 21.21.19.jpg
             //Photo_25.04.2022 19.59.04.jpg
-            //InputMedia media = new InputMedia();
+
+            filesList = FileListArray(filesPath, stratOffset, typeOfFileFilter);
+            if (filesList == null) return;
+            foreach (string item in filesList)
+            {
+                Console.WriteLine(item);
+            }
+
+            string fileName = filesPath + "Photo Бруска 26.04.2022 11.50.12.jpg";
+            System.IO.FileInfo fileInfo = new System.IO.FileInfo(fileName);
+            string shortFileName = System.IO.Path.GetFileName(fileName);
+            System.IO.FileStream fileStream = new System.IO.FileStream(fileName, System.IO.FileMode.Open);
+            InputMedia media = new InputMedia(fileStream, shortFileName);
             //InputMediaPhoto photo = new InputMediaPhoto();
             IAlbumInputMedia[] albumInputMedias = new IAlbumInputMedia[]
                 {
+                    new InputMediaPhoto(media){ Caption = "<H"},
                     new InputMediaPhoto("https://cdn.pixabay.com/photo/2017/06/20/19/22/fuchs-2424369_640.jpg"){ Caption = "ОДЫН"},
                     new InputMediaPhoto("https://cdn.pixabay.com/photo/2017/04/11/21/34/giraffe-2222908_640.jpg"){ Caption = "ДУА"},
                     new InputMediaPhoto("https://cdn.pixabay.com/photo/2017/06/20/19/22/fuchs-2424369_640.jpg"){ Caption = "3 3 3 3 3"},

@@ -8,13 +8,13 @@ using Telegram.Bot.Types.ReplyMarkups;
 
 namespace HW9._4_BOT_Advansed
 {
-    internal class Loger
+    internal class AuxiliaryClass
     {
         public static InlineKeyboardButton[][] fileChooseButtons; //Кнопки которые появляются в прямо в тексте, выбор какой именно список показать пользователю
         public static InlineKeyboardButton[][] fileListButtons; //Кнопки которые появляются в прямо в тексте, выбор какой именно файл показать пользователю
         public static KeyboardButton[][] keyboardMainMenuButtons; //Кнопки главного меню снизу
         private static string filePatch;
-        public Loger(string filePatch_)
+        public AuxiliaryClass(string filePatch_)
         {
             filePatch = filePatch_;
             FillOptionsMainButton();
@@ -143,11 +143,56 @@ namespace HW9._4_BOT_Advansed
 
                 for (int i = startOffset; i <= endItem; i++)
                 {
-                    S += $"#{i+1}: {fi[i]} \n";
+                    S += $"✅{i+1}: {fi[i]} \n";
                 }
             CreateInlineButtonsForFileList(endItem- startOffset+1, startOffset, maxCount, searchFileType);
             return S;
         }
+
+        public static string[] FileListArray(string fileResivedPatch, int startOffset, RequestFromInlineBtn.EtypeOfFileFilter searchFileType)
+        {
+            string searchPat = RequestFromInlineBtn.GetFilePattern(searchFileType);
+            string[] S;
+            int endItem;
+            int maxCount = 10;
+            int count = 0;
+
+            if (!Directory.Exists(fileResivedPatch))
+            {
+                Log($"ОШИБКА Директория {fileResivedPatch} не обнаружена");
+                return null;
+            }
+
+            DirectoryInfo directoryInfo = new DirectoryInfo(fileResivedPatch);
+            IEnumerable<FileInfo> fileInfo = directoryInfo.EnumerateFiles(searchPat);
+
+            if (fileInfo.Count() == 0)
+            {
+                Log($"ОШИБКА Директория {fileResivedPatch} пустая");
+                return null;
+            }
+
+            FileInfo[] fi = fileInfo.ToArray();
+
+            endItem = fileInfo.Count();
+            if (endItem > (maxCount + startOffset - 1))
+            {
+                endItem = (maxCount + startOffset - 1);
+            }
+            if (endItem >= fileInfo.Count()) { endItem = fileInfo.Count() - 1; };
+
+            S = new string[endItem - startOffset+1];
+
+            for (int i = startOffset; i <= endItem; i++)
+            {
+                S[count] = fi[i].FullName;
+                count++;
+            }
+            CreateInlineButtonsForFileList(endItem - startOffset + 1, startOffset, maxCount, searchFileType);
+            return S;
+        }
+
+
 
         public static string GetFullFileName(string fileResivedPatch, int numOfFileInList, RequestFromInlineBtn.EtypeOfFileFilter searchFileType)
         {
