@@ -112,18 +112,22 @@ namespace HW9._4_BOT_Advansed
             string s;
             if  (ExtractRequestFromInlineBtn(message.Text,out RequestFromInlineBtn req)) //пробуем обработать запрос типа /REQB:SF:10:JPG
             {
-                if(req.typeOfReq == RequestFromInlineBtn.EtypeOfReq.SendFile)
+                if(req.typeOfReq == RequestFromInlineBtn.EtypeOfReq.SendFile) //это запрос файла
                 {
+                    SendMessage(message.Chat.Id, "Пожалуйста подождите, я обрабатываю ваш запрос!");
                     string fileNameToSend = GetFullFileName("ResivedFiles", req.numberOfFile-1, req.typeOfFileFilter);
                     if (string.IsNullOrEmpty( fileNameToSend)) {Log($"ОШИБКА Имя файла не найдено") ; return; };
                     SendFileToUser(message.Chat.Id, fileNameToSend, req.typeOfFileFilter);
+                }else if(req.typeOfReq == RequestFromInlineBtn.EtypeOfReq.ShowListFiles) //это запрос списка файлов (кнопки << >>)
+                {
+                    s = FileList("ResivedFiles", req.numberOfFile, req.typeOfFileFilter);
+                    SendMessageInlineKeyboard(message.Chat.Id, $"Список картинок:\n{s}\nВыберете картинку!", fileListButtons);
                 }
             }
             switch (message.Text.ToUpper())
             {
                 case "/START":
-                        Log($"start");
-                        SendMessageMainMenuButtons(message.Chat.Id, "старт", keyboardMainMenuButtons);
+                        SendMessageMainMenuButtons(message.Chat.Id, START(), keyboardMainMenuButtons);
                     break;
                 case "/СПИСОК ФАЙЛОВ":
                     Log($"СПИСОК");
@@ -134,8 +138,7 @@ namespace HW9._4_BOT_Advansed
                     SendMessage(message.Chat.Id, "погода");
                     break;
                 case "/HELP":
-                    Log($"HELP");
-                    SendMessage(message.Chat.Id, "HELP");
+                    SendMessage(message.Chat.Id, HELP());
                     break;
                 case "/НОМЕР РЕГИОН":
                     Log($"НОМЕР РЕГИОН");
@@ -146,7 +149,6 @@ namespace HW9._4_BOT_Advansed
                     SendMessage(message.Chat.Id, "РАЗВЛЕЧЕНИЯ");
                     break;
                 case "/КАРТИНКИСПИСОК":
-                    Log($"КАРТИНКИ СПИСОК");
                     s = FileList("ResivedFiles", 0,RequestFromInlineBtn.EtypeOfFileFilter.JPG);
                     SendMessageInlineKeyboard(message.Chat.Id, $"Список картинок:\n{s}\nВыберете картинку!", fileListButtons);
                     break;
@@ -155,12 +157,10 @@ namespace HW9._4_BOT_Advansed
                     SendMessage(message.Chat.Id, "КАРТИНКИ");
                     break;
                 case "/ГОЛОСОВЫЕ":
-                    Log($"ГОЛОСОВЫЕ");
                     s = FileList("ResivedFiles", 0, RequestFromInlineBtn.EtypeOfFileFilter.OGG);
                     SendMessageInlineKeyboard(message.Chat.Id, $"Список файлов:\n{s}\nВыберете голосовое сообщение!", fileListButtons);
                     break;
                 case "/ВСЕ":
-                    Log($"ВСЕ");
                     s = FileList("ResivedFiles", 0, RequestFromInlineBtn.EtypeOfFileFilter.ALL);
                     SendMessageInlineKeyboard(message.Chat.Id, $"Список файлов:\n{s}\nВыберете файл, файл будет отправлен как документ, в независимости от типа!", fileListButtons);
                     break;
@@ -317,17 +317,18 @@ namespace HW9._4_BOT_Advansed
             Log($"==> Send File: {fileName}\n \t for chatID: {chatId}");
             System.IO.FileStream fileStream = new System.IO.FileStream(fileName, System.IO.FileMode.Open);
             InputOnlineFile inputOnlineFile = new InputOnlineFile(fileStream);
+            inputOnlineFile.FileName = shortFileName;
 
             switch (typeOfFileFilter)
             {
                 case RequestFromInlineBtn.EtypeOfFileFilter.JPG:
-                    await botClient.SendPhotoAsync(chatId, inputOnlineFile, shortFileName);
+                    await botClient.SendPhotoAsync(chatId, inputOnlineFile, caption: shortFileName);
                     break;
                 case RequestFromInlineBtn.EtypeOfFileFilter.OGG:
-                    await botClient.SendVoiceAsync(chatId, inputOnlineFile, shortFileName);
+                    await botClient.SendVoiceAsync(chatId, inputOnlineFile, caption: shortFileName);
                     break;
                 case RequestFromInlineBtn.EtypeOfFileFilter.ALL:
-                    await botClient.SendDocumentAsync(chatId, inputOnlineFile, shortFileName);
+                    await botClient.SendDocumentAsync(chatId, inputOnlineFile, caption:shortFileName);
                     break;
             }
             fileStream.Close();
