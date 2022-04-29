@@ -79,8 +79,9 @@ namespace HW9._4_BOT_Advansed
 
 
 
-        public static string FileListAll(string fileResivedPatch, int startOffset, string searchPattern)
+        public static string FileList(string fileResivedPatch, int startOffset, RequestFromInlineBtn.EtypeOfFileFilter searchFileType)
         {
+            string searchPat = RequestFromInlineBtn.GetFilePattern(searchFileType);
             string S="";
             int endItem;
             int maxCount=10;
@@ -92,7 +93,7 @@ namespace HW9._4_BOT_Advansed
             }
 
             DirectoryInfo directoryInfo = new DirectoryInfo(fileResivedPatch);
-            IEnumerable<FileInfo> fileInfo = directoryInfo.EnumerateFiles(searchPattern);
+            IEnumerable<FileInfo> fileInfo = directoryInfo.EnumerateFiles(searchPat);
 
             if (fileInfo.Count() == 0)
             {
@@ -113,17 +114,18 @@ namespace HW9._4_BOT_Advansed
                 {
                     S += $"#{i+1}: {fi[i]} \n";
                 }
-            CreateInlineButtonsForFileList(endItem- startOffset+1, startOffset, maxCount);
+            CreateInlineButtonsForFileList(endItem- startOffset+1, startOffset, maxCount, searchFileType);
             return S;
 
         }
 
-        private static void CreateInlineButtonsForFileList(int amount,int offset, int maxCount)
+        private static void CreateInlineButtonsForFileList(int amount,int offset, int maxCount, RequestFromInlineBtn.EtypeOfFileFilter searchFileType)
         {
             int Ywhole = amount / 6; //Сколько целых строк
             int Xpart = amount % 6;  //Сколько остаётся на дополнительную не целую строку
             int Yrows;
             int count=1;
+            string PatternRequest = RequestFromInlineBtn.patternRequest;
             InlineKeyboardButton[] tempX;
             tempX = new InlineKeyboardButton[6];
             if (Xpart == 0) { Yrows = Ywhole; } else { Yrows = Ywhole + 1; } //Всего строк
@@ -133,7 +135,7 @@ namespace HW9._4_BOT_Advansed
                 tempX = new InlineKeyboardButton[6];
                 for (int j = 0; j < 6; j++) //заполняем строку по X
                 {
-                    tempX[j] = InlineKeyboardButton.WithCallbackData(text: $"{count+ offset}", callbackData: $"/NF:{count + offset}");
+                    tempX[j] = InlineKeyboardButton.WithCallbackData(text: $"{count+ offset}", callbackData: $"{PatternRequest}:SF:{count + offset}:{RequestFromInlineBtn.GetFilePattern(searchFileType)}");
                     count++;
                 }
                 fileListButtons[i] = tempX;
@@ -144,7 +146,7 @@ namespace HW9._4_BOT_Advansed
                 tempX = new InlineKeyboardButton[Xpart];
                 for (int j = 0; j < Xpart; j++) //заполняем строку по X
                 {
-                    tempX[j] = InlineKeyboardButton.WithCallbackData(text: $"{count + offset}", callbackData: $"/NF:{count + offset}");
+                    tempX[j] = InlineKeyboardButton.WithCallbackData(text: $"{count + offset}", callbackData: $"{PatternRequest}:SF:{count + offset}:{RequestFromInlineBtn.GetFilePattern(searchFileType)}");
                     count++;
                 }
                 fileListButtons[Yrows-1] = tempX;
@@ -160,37 +162,69 @@ namespace HW9._4_BOT_Advansed
                 nx = 0;
             }  
             tempX = new InlineKeyboardButton[2];
-            tempX[0] = InlineKeyboardButton.WithCallbackData(text: $"<< ПРЕДЫДУЩИЕ", callbackData: $"/OFFSET:{pr}");
-            tempX[1] = InlineKeyboardButton.WithCallbackData(text: $"СЛЕДУЮЩИЕ >>", callbackData: $"/OFFSET:{nx}");
+            tempX[0] = InlineKeyboardButton.WithCallbackData(text: $"<< ПРЕДЫДУЩИЕ", callbackData: $"{PatternRequest}:SL:{pr}:{RequestFromInlineBtn.GetFilePattern(searchFileType)}");
+            tempX[1] = InlineKeyboardButton.WithCallbackData(text: $"СЛЕДУЮЩИЕ >>", callbackData: $"{PatternRequest}:SL:{nx}:{RequestFromInlineBtn.GetFilePattern(searchFileType)}");
             fileListButtons[Yrows] = tempX;
+        }
+
+        public static bool ExtractRequestFromInlineBtn(string text, out RequestFromInlineBtn req)
+        {
+            //    /REQB:SF:10:JPG
+            req = new RequestFromInlineBtn();
+            string[] s;
+            if (!text.Contains(RequestFromInlineBtn.patternRequest)) return false; //Это не это
+            try
+            {
+                s = text.Split(':');
+                if (!s[0].Equals(RequestFromInlineBtn.patternRequest)) return false;
+                switch (s[1])
+                {
+                    case "SF": req.typeOfReq = RequestFromInlineBtn.EtypeOfReq.SendFile; break;
+                    case "SL": req.typeOfReq = RequestFromInlineBtn.EtypeOfReq.ShowListFiles; break;
+                    default: return false;
+                }
+                req.numberOfFile = int.Parse(s[2]);
+                req.typeOfFileFilter = (RequestFromInlineBtn.EtypeOfFileFilter)Enum.Parse(typeof(RequestFromInlineBtn.EtypeOfFileFilter), s[3]);
+            }
+            catch (Exception e)
+            {
+                return false;
+            }
+            return true;
         }
 
     }
 
-    public class User
+    
+     public struct RequestFromInlineBtn
     {
-        public enum EFileType
+        public static string patternRequest = @"/REQB";
+        public enum EtypeOfReq
         {
-            jpg,
-            ogg,
-            all
+            SendFile,
+            ShowListFiles
         }
-        public long UserId;
-        public string FirstName;
-        public int OffsetFileList;
-        public EFileType FileType = EFileType.all;
-        public string GetFilePattern()
+        public enum EtypeOfFileFilter
+        {
+            JPG,
+            OGG,
+            ALL
+        }
+        public EtypeOfReq typeOfReq;
+        public int numberOfFile;
+        public EtypeOfFileFilter typeOfFileFilter;
+        public static string GetFilePattern(EtypeOfFileFilter typeOfFileFilter)
         {
             string s;
-            switch (FileType)
+            switch (typeOfFileFilter)
             {
-                case EFileType.jpg:
+                case EtypeOfFileFilter.JPG:
                     s = "*.jpg";
                     break;
-                case EFileType.ogg:
+                case EtypeOfFileFilter.OGG:
                     s = "*.ogg";
                     break;
-                case EFileType.all:
+                case EtypeOfFileFilter.ALL:
                     s = "*.*";
                     break;
                 default:
@@ -199,5 +233,10 @@ namespace HW9._4_BOT_Advansed
             }
             return s;
         }
+    }
+    public class User
+    {
+        public long UserId;
+        public string FirstName;
     }
 }

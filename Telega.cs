@@ -138,7 +138,7 @@ namespace HW9._4_BOT_Advansed
                     break;
                 case "/КАРТИНКИСПИСОК":
                     Log($"КАРТИНКИ СПИСОК");
-                    s = FileListAll("ResivedFiles", 0, "*.jpg");
+                    s = FileList("ResivedFiles", 0,RequestFromInlineBtn.EtypeOfFileFilter.JPG);
                     SendMessageInlineKeyboard(message.Chat.Id, $"Список картинок:\n{s}\nВыберете картинку!", fileListButtons);
                     break;
                 case "/КАРТИНКИ":
@@ -147,7 +147,8 @@ namespace HW9._4_BOT_Advansed
                     break;
                 case "/ГОЛОСОВЫЕ":
                     Log($"ГОЛОСОВЫЕ");
-                    SendMessage(message.Chat.Id, "ГОЛОСОВЫЕ");
+                    s = FileList("ResivedFiles", 0, RequestFromInlineBtn.EtypeOfFileFilter.OGG);
+                    SendMessageInlineKeyboard(message.Chat.Id, $"Список файлов:\n{s}\nВыберете голосовое сообщение!", fileListButtons);
                     break;
                 case "/ДОКУМЕНТЫ":
                     Log($"ДОКУМЕНТЫ");
@@ -155,7 +156,7 @@ namespace HW9._4_BOT_Advansed
                     break;
                 case "/ВСЕ":
                     Log($"ВСЕ");
-                    s = FileListAll("ResivedFiles", 0, "*.*");
+                    s = FileList("ResivedFiles", 0, RequestFromInlineBtn.EtypeOfFileFilter.ALL);
                     SendMessageInlineKeyboard(message.Chat.Id, $"Список файлов:\n{s}\nВыберете файл!", fileListButtons);
                     break;
                 default:

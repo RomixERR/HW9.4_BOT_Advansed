@@ -1,0 +1,80 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ConsoleApp26
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            string s;
+            while (true)
+            {
+                Console.WriteLine("enter ex or 'q' for ext");
+                s = Console.ReadLine();
+                if (s.Equals("q")) break;
+                if (ExtractRequestFromInlineBtn(s,out RequestFromInlineBtn req))
+                {
+                    showEx1(req);
+                }
+                else
+                {
+                    Console.WriteLine("Ошибка распознования");
+                }
+                
+
+            }
+        }
+        public static bool ExtractRequestFromInlineBtn(string text, out RequestFromInlineBtn req)
+        {
+            //    /REQB:SF:10:JPG
+            req = new RequestFromInlineBtn();
+            string[] s; 
+            if (!text.Contains(@"/REQB")) return false; //Это не это
+            try
+            {
+                s = text.Split(':');
+                if(!s[0].Equals(@"/REQB")) return false;
+                switch (s[1])
+                {
+                    case "SF": req.typeOfReq = RequestFromInlineBtn.EtypeOfReq.SendFile; break;
+                    case "SL": req.typeOfReq = RequestFromInlineBtn.EtypeOfReq.ShowListFiles; break;
+                    default: return false;
+                }
+                req.numberOfFile = int.Parse(s[2]);
+                req.typeOfFileFilter = (RequestFromInlineBtn.EtypeOfFileFilter)Enum.Parse(typeof(RequestFromInlineBtn.EtypeOfFileFilter), s[3]);
+            }
+            catch(Exception e)
+            {
+                return false;
+            }
+            return true;
+        }
+        private static void showEx1(RequestFromInlineBtn req)
+        {
+            Console.WriteLine($"typeOfReq:{req.typeOfReq} typeOfFileFilter:{req.typeOfFileFilter} numberOfFile:{req.numberOfFile}");
+        }
+
+
+    }
+
+    public struct RequestFromInlineBtn
+    {
+        public enum EtypeOfReq {
+            SendFile,
+            ShowListFiles
+        }
+        public enum EtypeOfFileFilter
+        {
+            JPG,
+            OGG,
+            ALL
+        }
+        public EtypeOfReq typeOfReq;
+        public int numberOfFile;
+        public EtypeOfFileFilter typeOfFileFilter;
+    }
+}
