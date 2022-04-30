@@ -72,6 +72,7 @@ namespace HW9._4_BOT_Advansed
                         ChatMemberStatus chatMemberStatus = update.MyChatMember.NewChatMember.Status;
                         string Status = chatMemberStatus.ToString();
                         //сделать обработку изменяющихся статусов!!!
+                        UserManager.UnRegisterUser(UserId);
                         Log($"MyChatMember FirstName:{FirstName} Chat.Id:{ChatId} UserId:{UserId} NewStatus:{Status}");
                         continue;
                     } else //Не понятное действие
@@ -134,6 +135,10 @@ namespace HW9._4_BOT_Advansed
                 case UserManager.EMenuPosition.RegionMenu:
                      SendMessage(message.Chat.Id, NomerRehiona.GetRegionNumber(message));
                     return;
+                case UserManager.EMenuPosition.PogodaMenu:
+                    UserManager.SetPogodaCity(message);
+                    SendMessage(message.Chat.Id, Pogoda.GetPogoda(UserManager.GetPogodaCity(message),message));
+                    return;
                 default:
                     break;
             }
@@ -144,12 +149,14 @@ namespace HW9._4_BOT_Advansed
                         SendMessageMainMenuButtons(message.Chat.Id, START(), keyboardMainMenuButtons);
                     break;
                 case "/СПИСОК ФАЙЛОВ":
-                    Log($"СПИСОК");
                     SendMessageInlineKeyboard(message.Chat.Id, "Выберете тип файлов для просмотра списка или загрузки эскизов!", fileChooseButtons);
                     break;
                 case "/ПОГОДА":
-                    Log($"ПОГОДА");
-                    SendMessage(message.Chat.Id, "погода");
+                    SendMessageInlineKeyboard(message.Chat.Id, Pogoda.GetPogoda(UserManager.GetPogodaCity(message),message), keyboardPogodaMenuButtons);
+                    break;
+                case "/ГОРОД":
+                    UserManager.SetMenuPosition(message, UserManager.EMenuPosition.PogodaMenu);
+                    SendMessage(message.Chat.Id, "Введите название города, для поиска:");
                     break;
                 case "/HELP":
                     UserManager.SetMenuPosition(message, UserManager.EMenuPosition.MainMenu);

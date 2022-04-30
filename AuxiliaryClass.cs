@@ -13,7 +13,9 @@ namespace HW9._4_BOT_Advansed
     {
         public static InlineKeyboardButton[][] fileChooseButtons; //Кнопки которые появляются в прямо в тексте, выбор какой именно список показать пользователю
         public static InlineKeyboardButton[][] fileListButtons; //Кнопки которые появляются в прямо в тексте, выбор какой именно файл показать пользователю
+        public static InlineKeyboardButton[][] keyboardPogodaMenuButtons;
         public static KeyboardButton[][] keyboardMainMenuButtons; //Кнопки главного меню снизу
+         
         private static string filePatch;
         public AuxiliaryClass(string filePatch_)
         {
@@ -62,6 +64,16 @@ namespace HW9._4_BOT_Advansed
                     InlineKeyboardButton.WithCallbackData(text: "ВСЕ СПИСОК", callbackData: "/ВСЕ"),
                 }
             };
+
+            keyboardPogodaMenuButtons = new InlineKeyboardButton[][]
+            {
+                new InlineKeyboardButton[]
+                {
+                    InlineKeyboardButton.WithCallbackData(text: "Указать город", callbackData: "/ГОРОД"),
+                    InlineKeyboardButton.WithCallbackData(text: "Погода", callbackData: "/ПОГОДА"),
+                },
+            };
+            
         }
         private void CreateKeyboardButtons()
         {
@@ -363,7 +375,8 @@ namespace HW9._4_BOT_Advansed
         public enum EMenuPosition
         {
             MainMenu,
-            RegionMenu
+            RegionMenu,
+            PogodaMenu
         }
 
 
@@ -382,10 +395,10 @@ namespace HW9._4_BOT_Advansed
                 AuxiliaryClass.Log($"Пользователь добавлен FirstName:{message.From.FirstName} ChatID:{message.Chat.Id}");
             }
         }
-        public static void UnRegisterUser(Message message)
+        public static void UnRegisterUser(long ChatId)
         {
-            if (!MyUsers.ContainsKey(message.Chat.Id)) return; //Если пользователя нет
-            MyUsers.Remove(message.Chat.Id); //Удаляем из оперативки
+            if (!MyUsers.ContainsKey(ChatId)) return; //Если пользователя нет
+            MyUsers.Remove(ChatId); //Удаляем из оперативки
         }
         public static string GetPogodaCity(Message message)
         {
@@ -396,29 +409,40 @@ namespace HW9._4_BOT_Advansed
             }
             return s;
         }
-        public static int GetNumOfRegion(Message message) 
+
+        public static void SetPogodaCity(Message message)
         {
-            int n = -1;
-            if (MyUsers.TryGetValue(message.Chat.Id, out User user))
+            string nameOfCity = message.Text;
+            if (string.IsNullOrEmpty(nameOfCity)) return;
+            if (MyUsers.ContainsKey(message.Chat.Id))
             {
-                n = user.NumOfRegion;
-            }
-            return n;
-        }
-        public static void SetNumOfRegion(Message message, string numOfRegion)
-        {
-            if (MyUsers.TryGetValue(message.Chat.Id, out User user))
-            {
-                try
-                {
-                    user.NumOfRegion = int.Parse(numOfRegion);
-                }
-                catch (Exception e)
-                {
-                    AuxiliaryClass.Log($"ОШИБКА SetNumOfRegion Message:{e}");
-                }
+                MyUsers[message.Chat.Id].PogodaCity = nameOfCity;
             }
         }
+
+        //public static int GetNumOfRegion(Message message) 
+        //{
+        //    int n = -1;
+        //    if (MyUsers.TryGetValue(message.Chat.Id, out User user))
+        //    {
+        //        n = user.NumOfRegion;
+        //    }
+        //    return n;
+        //}
+        //public static void SetNumOfRegion(Message message, string numOfRegion)
+        //{
+        //    if (MyUsers.TryGetValue(message.Chat.Id, out User user))
+        //    {
+        //        try
+        //        {
+        //            user.NumOfRegion = int.Parse(numOfRegion);
+        //        }
+        //        catch (Exception e)
+        //        {
+        //            AuxiliaryClass.Log($"ОШИБКА SetNumOfRegion Message:{e}");
+        //        }
+        //    }
+        //}
         public static void SetMenuPosition(Message message, EMenuPosition menuPosition)
         {
             if (MyUsers.TryGetValue(message.Chat.Id, out User user))
