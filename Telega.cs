@@ -132,10 +132,10 @@ namespace HW9._4_BOT_Advansed
             UserManager.RegisterUser(message);
             switch (UserManager.GetMenuPosition(message)) //Если пользователь в подменю
             {
-                case UserManager.EMenuPosition.RegionMenu:
+                case UserManager.EMenuPosition.RegionMenu: //Ищем по номеру региона название региона
                      SendMessage(message.Chat.Id, NomerRehiona.GetRegionNumber(message));
                     return;
-                case UserManager.EMenuPosition.PogodaMenu:
+                case UserManager.EMenuPosition.PogodaMenu: //Запрашиваем погоду у сервиса
                     UserManager.SetPogodaCity(message);
                     SendMessage(message.Chat.Id, Pogoda.GetPogoda(UserManager.GetPogodaCity(message),message));
                     return;
@@ -168,7 +168,7 @@ namespace HW9._4_BOT_Advansed
                     break;
                 case "/РАЗВЛЕЧЕНИЯ":
                     Log($"РАЗВЛЕЧЕНИЯ");
-                    SendMessage(message.Chat.Id, "РАЗВЛЕЧЕНИЯ");
+                    SendMessage(message.Chat.Id, "Развлеки себя сам. А данный раздел WIP (в разработке!)");
                     break;
                 case "/КАРТИНКИСПИСОК":
                     s = FileList(fileResivedPatch, 0,RequestFromInlineBtn.EtypeOfFileFilter.JPG);
@@ -192,8 +192,6 @@ namespace HW9._4_BOT_Advansed
 
             
         }
-
-
         /// <summary>
         /// Получаем данные о файлах из сообщения Update
         /// </summary>

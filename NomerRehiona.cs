@@ -52,7 +52,7 @@ namespace HW9._4_BOT_Advansed
             try
             {
                 
-                if (nomerRegiona.TryGetValue(int.Parse(region), out s))
+                if (nomerRegiona.TryGetValue(int.Parse(region), out s)) //Ищем название региона
                 {
                     UserManager.SetMenuPosition(message, UserManager.EMenuPosition.MainMenu);
                 }
