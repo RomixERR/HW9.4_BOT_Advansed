@@ -126,7 +126,7 @@ namespace HW9._4_BOT_Advansed
                 }else if (req.typeOfReq == RequestFromInlineBtn.EtypeOfReq.ShowPreviewsPhotos) //это запрос миниатюр фоток (кнопки << >>)
                 {
                     SendPhotoPreviews(message.Chat.Id, req.numberOfFile, RequestFromInlineBtn.EtypeOfFileFilter.JPG);
-                    SendMessageInlineKeyboard(message.Chat.Id, $"[WIP] Выберете картинку! [WIP]", fileListButtons);
+                    SendMessageInlineKeyboard(message.Chat.Id, $"Выберете картинку (цифру)!", fileListButtons);
                 }
             }
             switch (message.Text.ToUpper())
@@ -159,7 +159,7 @@ namespace HW9._4_BOT_Advansed
                     break;
                 case "/КАРТИНКИ":
                     SendPhotoPreviews(message.Chat.Id, 0,RequestFromInlineBtn.EtypeOfFileFilter.JPG);
-                    SendMessageInlineKeyboard(message.Chat.Id, $"[WIP] Выберете картинку! [WIP]", fileListButtons);
+                    SendMessageInlineKeyboard(message.Chat.Id, $"Выберете картинку (цифру)!", fileListButtons);
                     break;
                 case "/ГОЛОСОВЫЕ":
                     s = FileList(fileResivedPatch, 0, RequestFromInlineBtn.EtypeOfFileFilter.OGG);
@@ -354,33 +354,32 @@ namespace HW9._4_BOT_Advansed
             
             string filesPath = $@"{fileResivedPatch}\preview\";
             string[] filesList;
-            Log($"==> Send Photo Previews from: {filesPath}\n \t for chatID: {chatId}");
-            //Photo 25.04.2022 21.01.03.jpg
-            //Photo Кокш 25.04.2022 21.21.19.jpg
-            //Photo_25.04.2022 19.59.04.jpg
-
             filesList = FileListArray(filesPath, stratOffset, typeOfFileFilter);
             if (filesList == null) return;
-            foreach (string item in filesList)
+            System.IO.FileInfo fileInfo;
+            string shortFileName;
+            System.IO.FileStream fileStream;
+            //InputMedia[] media = new InputMedia[filesList.Length];
+            InputMedia media;
+            InputMediaPhoto[] inputMediaPhotos = new InputMediaPhoto[filesList.Length];
+            IAlbumInputMedia[] albumInputMedias = new IAlbumInputMedia[filesList.Length];
+            int count = 0;
+
+            foreach (string fullFileName in filesList)
             {
-                Console.WriteLine(item);
+                Log("Имена файлов - миниатюр подготовленные на отправку:\n" + fullFileName);
+                fileInfo = new System.IO.FileInfo(fullFileName); //получаем инфо о файле
+                shortFileName = System.IO.Path.GetFileName(fullFileName); //получаем короткое имя файла (без пути)
+                fileStream = new System.IO.FileStream(fullFileName, System.IO.FileMode.Open);
+                media = new InputMedia(fileStream, shortFileName);
+                inputMediaPhotos[count] = new InputMediaPhoto(media);
+                inputMediaPhotos[count].Caption = $"📒 {stratOffset+1+ count} 📒\n📝{shortFileName}";
+                albumInputMedias[count] = inputMediaPhotos[count];
+                count++;
             }
 
-            string fileName = filesPath + "Photo Бруска 26.04.2022 11.50.12.jpg";
-            System.IO.FileInfo fileInfo = new System.IO.FileInfo(fileName);
-            string shortFileName = System.IO.Path.GetFileName(fileName);
-            System.IO.FileStream fileStream = new System.IO.FileStream(fileName, System.IO.FileMode.Open);
-            InputMedia media = new InputMedia(fileStream, shortFileName);
-            //InputMediaPhoto photo = new InputMediaPhoto();
-            IAlbumInputMedia[] albumInputMedias = new IAlbumInputMedia[]
-                {
-                    new InputMediaPhoto(media){ Caption = "<H"},
-                    new InputMediaPhoto("https://cdn.pixabay.com/photo/2017/06/20/19/22/fuchs-2424369_640.jpg"){ Caption = "ОДЫН"},
-                    new InputMediaPhoto("https://cdn.pixabay.com/photo/2017/04/11/21/34/giraffe-2222908_640.jpg"){ Caption = "ДУА"},
-                    new InputMediaPhoto("https://cdn.pixabay.com/photo/2017/06/20/19/22/fuchs-2424369_640.jpg"){ Caption = "3 3 3 3 3"},
-                    new InputMediaPhoto("https://cdn.pixabay.com/photo/2017/04/11/21/34/giraffe-2222908_640.jpg"){ Caption = "4 4 4 4 4"},
-                };
 
+            Log($"==> Send Photo Previews from: {filesPath}\n \t for chatID: {chatId}");
             await botClient.SendMediaGroupAsync(chatId, albumInputMedias);
         }
     }
