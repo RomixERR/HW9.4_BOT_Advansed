@@ -187,7 +187,9 @@ namespace HW9._4_BOT_Advansed
                     SendMessageInlineKeyboard(message.Chat.Id, $"Список файлов:\n{s}\nВыберете файл, файл будет отправлен как документ, в независимости от типа!", fileListButtons);
                     break;
                 default:
-                break;
+                    UserManager.SetMenuPosition(message, UserManager.EMenuPosition.MainMenu);
+                    SendMessageMainMenuButtons(message.Chat.Id, MINIHELP(), keyboardMainMenuButtons);
+                    break;
             }
 
             

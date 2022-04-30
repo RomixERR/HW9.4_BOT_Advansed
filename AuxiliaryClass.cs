@@ -122,6 +122,14 @@ namespace HW9._4_BOT_Advansed
             return s;
         }
 
+        public static string MINIHELP()
+        {
+            string s = "☺️ Вы написале нечно непонятное для моего мозга. Воспользуйтесь кнопками ниже.\n" +
+                       "/HELP - помощь.\n" +
+                       "/START - начало.";
+            return s;
+        }
+
 
         public static string FileList(string fileResivedPatch, int startOffset, RequestFromInlineBtn.EtypeOfFileFilter searchFileType)
         {
