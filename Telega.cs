@@ -24,7 +24,6 @@ namespace HW9._4_BOT_Advansed
         private static string token;
         private int updateOffset =0;
         public static string fileResivedPatch;
-        private Dictionary<long, User> MyUsers = new Dictionary<long, User>();    //<ChatID,User> Пользователи
 
         public Telega(string tokenFileLocalPath,string fileResivedPatch_)
         {
@@ -129,9 +128,19 @@ namespace HW9._4_BOT_Advansed
                     SendMessageInlineKeyboard(message.Chat.Id, $"Выберете картинку (цифру)!", fileListButtons);
                 }
             }
+            UserManager.RegisterUser(message);
+            switch (UserManager.GetMenuPosition(message)) //Если пользователь в подменю
+            {
+                case UserManager.EMenuPosition.RegionMenu:
+                     SendMessage(message.Chat.Id, NomerRehiona.GetRegionNumber(message));
+                    return;
+                default:
+                    break;
+            }
             switch (message.Text.ToUpper())
             {
                 case "/START":
+                        UserManager.SetMenuPosition(message, UserManager.EMenuPosition.MainMenu);
                         SendMessageMainMenuButtons(message.Chat.Id, START(), keyboardMainMenuButtons);
                     break;
                 case "/СПИСОК ФАЙЛОВ":
@@ -143,11 +152,12 @@ namespace HW9._4_BOT_Advansed
                     SendMessage(message.Chat.Id, "погода");
                     break;
                 case "/HELP":
+                    UserManager.SetMenuPosition(message, UserManager.EMenuPosition.MainMenu);
                     SendMessage(message.Chat.Id, HELP());
                     break;
                 case "/НОМЕР РЕГИОН":
-                    Log($"НОМЕР РЕГИОН");
-                    SendMessage(message.Chat.Id, "НОМЕР РЕГИОН");
+                    UserManager.SetMenuPosition(message, UserManager.EMenuPosition.RegionMenu);
+                    SendMessage(message.Chat.Id, "Введите номер региона, для поиска:");
                     break;
                 case "/РАЗВЛЕЧЕНИЯ":
                     Log($"РАЗВЛЕЧЕНИЯ");
@@ -365,6 +375,7 @@ namespace HW9._4_BOT_Advansed
             IAlbumInputMedia[] albumInputMedias = new IAlbumInputMedia[filesList.Length];
             int count = 0;
 
+            if (filesList.Length == 0) return;
             foreach (string fullFileName in filesList)
             {
                 Log("Имена файлов - миниатюр подготовленные на отправку:\n" + fullFileName);
@@ -376,8 +387,8 @@ namespace HW9._4_BOT_Advansed
                 inputMediaPhotos[count].Caption = $"📒 {stratOffset+1+ count} 📒\n📝{shortFileName}";
                 albumInputMedias[count] = inputMediaPhotos[count];
                 count++;
+                //fileStream.Close();
             }
-
 
             Log($"==> Send Photo Previews from: {filesPath}\n \t for chatID: {chatId}");
             await botClient.SendMediaGroupAsync(chatId, albumInputMedias);

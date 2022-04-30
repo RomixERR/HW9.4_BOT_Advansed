@@ -34,6 +34,7 @@ namespace HW9._4_BOT_Advansed
             Console.WriteLine("Press any key for START");
             Console.ReadKey();
             Console.Clear();
+            NomerRehiona nomerRehiona = new NomerRehiona();
             AuxiliaryClass loger = new AuxiliaryClass(LogPath);
             Telega telegram = new Telega(TokenFilePath, ResivedFilesPath);
         }

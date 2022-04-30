@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO;
 using Telegram.Bot.Types.ReplyMarkups;
+using Telegram.Bot.Types;
 
 namespace HW9._4_BOT_Advansed
 {
@@ -25,7 +26,7 @@ namespace HW9._4_BOT_Advansed
         {
             Console.WriteLine(msg);
             CreateSupportingDirectory(filePatch);
-            File.AppendAllText(filePatch, msg + "\n");
+            System.IO.File.AppendAllText(filePatch, msg + "\n");
         }
         public enum forOptionsButton
         {
@@ -348,9 +349,94 @@ namespace HW9._4_BOT_Advansed
             return s;
         }
     }
-    public class User
+
+    public class UserManager
     {
-        public long UserId;
-        public string FirstName;
+        public class User
+        {
+            public long UserId;
+            public string FirstName;
+            public string PogodaCity;
+            public int NumOfRegion;
+            public EMenuPosition MenuPosition;
+        }
+        public enum EMenuPosition
+        {
+            MainMenu,
+            RegionMenu
+        }
+
+
+        private static Dictionary<long, User> MyUsers = new Dictionary<long, User>();    //<ChatID,User> Пользователи
+
+        public static void RegisterUser(Message message)
+        {
+            if (!MyUsers.ContainsKey(message.Chat.Id)) //Если пользователя нет то регистрируем его
+            {
+                User user = new User() {
+                    FirstName = message.From.FirstName,
+                    UserId = message.From.Id,
+                    MenuPosition = EMenuPosition.MainMenu
+                    };
+                MyUsers.Add(message.Chat.Id, user); //регистрируем в оперативку
+                AuxiliaryClass.Log($"Пользователь добавлен FirstName:{message.From.FirstName} ChatID:{message.Chat.Id}");
+            }
+        }
+        public static void UnRegisterUser(Message message)
+        {
+            if (!MyUsers.ContainsKey(message.Chat.Id)) return; //Если пользователя нет
+            MyUsers.Remove(message.Chat.Id); //Удаляем из оперативки
+        }
+        public static string GetPogodaCity(Message message)
+        {
+            string s="";
+            if(MyUsers.TryGetValue(message.Chat.Id,out User user))
+            {
+                s = user.PogodaCity;
+            }
+            return s;
+        }
+        public static int GetNumOfRegion(Message message) 
+        {
+            int n = -1;
+            if (MyUsers.TryGetValue(message.Chat.Id, out User user))
+            {
+                n = user.NumOfRegion;
+            }
+            return n;
+        }
+        public static void SetNumOfRegion(Message message, string numOfRegion)
+        {
+            if (MyUsers.TryGetValue(message.Chat.Id, out User user))
+            {
+                try
+                {
+                    user.NumOfRegion = int.Parse(numOfRegion);
+                }
+                catch (Exception e)
+                {
+                    AuxiliaryClass.Log($"ОШИБКА SetNumOfRegion Message:{e}");
+                }
+            }
+        }
+        public static void SetMenuPosition(Message message, EMenuPosition menuPosition)
+        {
+            if (MyUsers.TryGetValue(message.Chat.Id, out User user))
+            {
+                user.MenuPosition = menuPosition;
+            }
+        }
+        public static EMenuPosition GetMenuPosition(Message message)
+        {
+            EMenuPosition menuPosition = EMenuPosition.MainMenu;
+            if (MyUsers.TryGetValue(message.Chat.Id, out User user))
+            {
+                menuPosition = user.MenuPosition;
+            }
+            return menuPosition;
+        }
+
+
     }
+
 }
