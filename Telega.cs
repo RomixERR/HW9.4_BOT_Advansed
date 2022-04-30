@@ -225,8 +225,8 @@ namespace HW9._4_BOT_Advansed
                     PhotoSize photoLage;
                     photoLage = message.Photo[message.Photo.Count() - 1];
                     DownloadFile(photoLage.FileId, $@"{fileResivedPatch}\{FileName}");
-                    //SendFile(message.Chat.Id, $@"{fileResivedPatch}\{FileName}");  //СДЕЛАТЬ ДЛЯ ВСЕХ ПОЛЬЗОВАТЕЛЕЙ РАССЫЛКУ
-                    ReSendFilePhoto(message.Chat.Id, photoLage.FileId, $"Пользователь сохранил файл.\n{FileName}");
+                    /////SendFile(message.Chat.Id, $@"{fileResivedPatch}\{FileName}");  //СДЕЛАТЬ ДЛЯ ВСЕХ ПОЛЬЗОВАТЕЛЕЙ РАССЫЛКУ
+                    //ReSendFilePhoto(message.Chat.Id, photoLage.FileId, $"Пользователь сохранил файл.\n{FileName}");
                     break;
                 case MessageType.Document: //Обработка документов
                     FileSize = (int)message.Document.FileSize;
@@ -307,6 +307,11 @@ namespace HW9._4_BOT_Advansed
         private async void SendMessageInlineKeyboard(long chatId, string msg, InlineKeyboardButton[][] inlineKeyboards)
         {
                 Thread.Sleep(1000);
+                if(inlineKeyboards == null)
+                {
+                await botClient.SendTextMessageAsync(chatId, "Пусто!");
+                return;
+                }
                 InlineKeyboardMarkup inlineKeyboard = new InlineKeyboardMarkup(inlineKeyboards);
                 Log($"==> SendMessageInlineKeyboard: {msg}\n \t for chatID: {chatId}");
                 await botClient.SendTextMessageAsync(chatId, msg, replyMarkup: inlineKeyboard);
